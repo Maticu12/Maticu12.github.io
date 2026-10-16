@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "io.github.maticu12.lavaclimb",
+        "sha256_cert_fingerprints": ["BC:96:E1:B2:06:F1:4A:62:AB:6E:3B:F6:3C:EA:FC:4F:43:3C:5F:06:86:88:4F:5C:9F:DE:35:B4:55:E8:DD:3E"]
+      }
+    }]
