@@ -44,6 +44,7 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer}
 .hud-h{position:absolute;left:0;right:0;top:calc(var(--u)*3.4);display:flex;flex-direction:column;align-items:center;font-family:var(--f-pixel);font-weight:700;line-height:1}
 #hH{font-size:calc(var(--u)*11);font-variant-numeric:tabular-nums;display:inline-block}
 #hH.bump{animation:bump .12s steps(2)}
+#hH.mile{color:var(--gold)}
 @keyframes bump{50%{transform:translateY(calc(var(--u)*-1))}}
 .hud-best{font-size:calc(var(--u)*3.2);color:var(--dim);margin-top:calc(var(--u)*1.2);font-weight:400}
 .lava-row{display:flex;align-items:center;gap:calc(var(--u)*1.6);margin-top:calc(var(--u)*1.6);font-size:calc(var(--u)*3);font-weight:400}
@@ -313,7 +314,7 @@ function mkCell(t,coinP){ return {t, broken:false, until:0, coin:t!=='spike' && 
 function newRun(){
   const rest=[1,2,3,4,5,6];
   for(let i=rest.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [rest[i],rest[j]]=[rest[j],rest[i]]; }
-  run = {order:[0,...rest], rows:[], forced:{}, safe:[2], prev:'normal', gust:{dir:0,left:0,calm:0},
+  run = {order:[0,...rest], rows:[], forced:{}, safe:[2], prev:'normal', gust:{dir:0,left:0,calm:0}, branches:[],
          nextChest:16+Math.round(expo(10)), nextRocket:ROCKET_FIRST+Math.round(expo(ROCKET_MEAN))};
 }
 function zoneTheme(z){ return run.order[((z%7)+7)%7]; }
@@ -329,17 +330,12 @@ function genRow(r){
   const z=zoneOf(r), th=zoneTheme(z), pos=r-zoneStart(z), d=Math.min(1,r/350), dark=!!THEMES[th].dark;
   const row={r, z, th, cells:new Array(LANES).fill(null), wind:0, mov:null, path:[], decor:false};
   if(r===0){ for(let i=0;i<LANES;i++) row.cells[i]=mkCell('floor'); run.safe=[2]; row.path=[0,1,2,3,4]; return row; }
-  const spikeP = r<10 ? 0 : .12+.35*d;
-  // fewer dead-end platforms where it is dark, so what little you can see is mostly real
-  const decoyP = (r<6 ? .55 : .6-.3*d) * (dark ? .6 : 1);
-  const decoy = () => { const x=Math.random(); if(x<spikeP) return mkCell('spike'); if(r>15 && x<spikeP+.15) return mkCell('crumble',.08); return mkCell('normal',.14); };
+  const spikeP = r<10 ? 0 : (.12+.2*d)*(dark?.7:1);
+  const fillSpikes = pr => { for(let i=0;i<LANES;i++){ if(row.cells[i]) continue; if(row.mov&&(i===row.mov.a||i===row.mov.b)) continue; if(Math.random()<pr) row.cells[i]=mkCell('spike'); } };
   const f=run.forced[r];
-  if(f && f.decor){ for(let i=0;i<LANES;i++) if(Math.random()<.5) row.cells[i]=decoy(); row.decor=true; return row; }
-  if(f && f.lane!=null){
-    row.cells[f.lane]=mkCell('normal',.3);
-    for(let i=0;i<LANES;i++) if(i!==f.lane && Math.random()<decoyP) row.cells[i]=decoy();
-    run.safe=[f.lane]; row.path=[f.lane]; run.prev='normal'; return row;
-  }
+  // rows the mushroom jumps over only hold spikes, so nothing up there is a dead end
+  if(f && f.decor){ if(r>=10) fillSpikes(.35); row.decor=true; return row; }
+  if(f && f.lane!=null){ row.cells[f.lane]=mkCell('normal',.3); fillSpikes(spikeP); run.safe=[f.lane]; row.path=[f.lane]; run.prev='normal'; return row; }
   const prevSafe=run.safe, mechs=zoneMech(z);
   if(pos===0){ run.gust.left=0; run.gust.calm=0; }
   let m=null;
@@ -354,11 +350,12 @@ function genRow(r){
     // a timed platform never follows one that is about to disappear, otherwise some rows cannot be passed in time
     let pool=mechs.filter(x=>x!=='wind');
     if(run.prev==='crumble'||run.prev==='phase') pool=pool.filter(x=>x!=='phase'&&x!=='moving');
+    if(run.branches.length) pool=pool.filter(x=>x!=='spring');
     if(pool.length) m=pick(pool);
   }
   let cand=null;
-  for(const s of run.safe){ const rs=reach(s,row.wind); cand=cand?new Set([...cand].filter(x=>rs.has(x))):rs; }
-  let list=[...cand]; if(!list.length) list=[...reach(run.safe[0],row.wind)];
+  for(const s of prevSafe){ const rs=reach(s,row.wind); cand=cand?new Set([...cand].filter(x=>rs.has(x))):rs; }
+  let list=[...cand]; if(!list.length) list=[...reach(prevSafe[0],row.wind)];
   const T=pick(list);
   let ns=[T];
   if(m==='ice'){ ns=[]; for(let l=T-1;l<=T+1;l++) if(l>=0&&l<LANES){ row.cells[l]=mkCell('ice',.05); ns.push(l); } }
@@ -371,20 +368,31 @@ function genRow(r){
   }
   else if(m==='spring'){ row.cells[T]=mkCell('spring'); run.forced[r+1]={decor:true}; run.forced[r+2]={decor:true}; run.forced[r+3]={lane:T}; }
   else row.cells[T]=mkCell('normal',.05);
-  for(let i=0;i<LANES;i++){
-    if(row.cells[i]) continue;
-    if(row.mov && (i===row.mov.a||i===row.mov.b)) continue;
-    if(Math.random()<decoyP) row.cells[i]=decoy();
+  // side branches: every platform you can stand on has a way up, and every branch flows back into the main path
+  const w=row.wind, onPath=l=>ns.includes(l), keep=[];
+  for(const br of run.branches){
+    const rs=reach(br.lane,w), canMerge=ns.some(l=>rs.has(l));
+    if(canMerge && br.left<=0) continue;
+    const opts=[...rs].filter(l=>!onPath(l));
+    if(!opts.length) continue;
+    let L;
+    if(br.left<=0){ opts.sort((x,y)=>Math.abs(x-T)-Math.abs(y-T)); L=opts[0]; } else L=pick(opts);
+    if(!row.cells[L]) row.cells[L]=mkCell('normal',.2);
+    br.lane=L; br.left--;
+    if(!keep.some(k=>k.lane===L)) keep.push(br);
   }
-  if(r>=run.nextChest){
+  run.branches=keep;
+  const chestDue=r>=run.nextChest, timed=mechs.some(x=>x==='phase'||x==='moving');
+  if(m!=='spring' && pos>=2 && run.branches.length<2 && (chestDue || Math.random()<(timed?.2:.4))){
     const opts=[];
-    for(let i=0;i<LANES;i++){
-      const c=row.cells[i];
-      if(!c||c.t!=='normal'||ns.includes(i)) continue;
-      if(prevSafe.some(s=>reach(s,row.wind).has(i))) opts.push(i);
+    for(let i=0;i<LANES;i++){ if(row.cells[i]||onPath(i)) continue; if(prevSafe.some(s=>reach(s,w).has(i))) opts.push(i); }
+    if(opts.length){
+      const L=pick(opts), c=mkCell('normal',.2); row.cells[L]=c;
+      run.branches.push({lane:L,left:1+Math.floor(Math.random()*4)});
+      if(chestDue){ c.chest=true; c.coin=false; c.deco=-1; run.nextChest=r+CHEST_GAP+Math.round(expo(CHEST_MEAN)); }
     }
-    if(opts.length){ const c=row.cells[pick(opts)]; c.chest=true; c.coin=false; c.deco=-1; run.nextChest=r+CHEST_GAP+Math.round(expo(CHEST_MEAN)); }
   }
+  fillSpikes(spikeP);
   if(!m && r>=run.nextRocket){ const c=row.cells[T]; c.item='rocket'; c.coin=false; c.deco=-1; run.nextRocket=r+ROCKET_GAP+Math.round(expo(ROCKET_MEAN)); }
   run.prev=m||'normal';
   run.safe=ns; row.path=ns.slice();
@@ -420,7 +428,7 @@ const p = {};
 
 function resetWorld(){
   newRun(); getRow(60);
-  Object.assign(p,{row:0,lane:2,dir:1,state:'idle',x:laneX(2),y:0,anim:null,vy:0,fallLane:2,checkRow:0,fromRow:0,stunT:0,launchAt:0,riding:null,rk:null});
+  Object.assign(p,{row:0,lane:2,dir:1,state:'idle',x:laneX(2),y:0,anim:null,vy:0,fallLane:2,checkRow:0,fromRow:0,stunT:0,launchAt:0,riding:null,rk:null,land:0,hurt:0});
   L=-5; lavaSpeed=0; runT=0; maxRow=0; maxZone=0; coinsRun=0; falls=0; deadT=0; overShown=false;
   parts.length=0; started=false; flash=0; nextBolt=3;
   lavaBonus=0; lavaHold=false; revives=0; bestAtStart=save.best; bestBroken=false; gflash=0; pops.length=0;
@@ -440,11 +448,12 @@ function act(dx){
   const lane=clamp(p.lane+dx+row.wind,0,LANES-1);
   const ty=landType(row,lane,gt);
   if(!ty){ sfx('miss'); startFall(lane,false,false); return; }
+  if(ty==='spike'){ spikeBounce(nr,lane); return; }
   p.riding=null;
   p.row=nr; p.lane=lane; p.state='hop';
   anim(ty==='moving' ? laneX(movPos(row,gt)) : laneX(lane), rowY(nr), .08, 4);
-  if(ty==='spike'){ knock(); return; }
-  sfx('step');
+  ladder = gt-lastStepT<.5 ? ladder+1 : 0; lastStepT=gt;
+  sfx('step'); vib(7);
   arrive(nr,lane,ty,dx);
 }
 function finishHop(){ if(p.anim){ p.x=p.anim.tx; p.y=p.anim.ty; p.anim=null; } if(p.state==='hop') p.state='idle'; }
@@ -465,13 +474,17 @@ function arrive(r,lane,ty,dx){
     if(c.item==='rocket' && !c.used){ c.used=true; startRocket(r,lane); return; }
     if(c.t==='spring'){ c.sq=.35; p.state='launch'; p.launchAt=gt+.13; sfx('spring'); vib(20); return; }
   }
-  puff(p.anim?p.anim.tx:p.x,rowY(r),2,THEMES[row.th].blk.t,14,30,.25);
+  if(c && ty!=='moving') c.dip=.09;
+  const lx=p.anim?p.anim.tx:p.x, ly=rowY(r);
+  for(const sd of [-1,1]) for(let i=0;i<2;i++) parts.push({x:lx+sd*rnd(2,5),y:ly-1,vx:sd*rnd(15,35),vy:rnd(-12,-4),g:30,life:rnd(.15,.28),c:i?'#fff1dc':THEMES[row.th].blk.t,s:1});
 }
 function reachRow(r){
   if(r<=maxRow) return;
   maxRow=r;
   const z=zoneOf(r);
   if(z>maxZone){ maxZone=z; coinsRun+=10; showZone(z); sfx('zone'); }
+  else if(r%100===0){ sfx('mile100'); mileFx(true); }
+  else if(r%10===0){ sfx('mile'); mileFx(false); }
   if(!bestBroken && bestAtStart>0 && r>bestAtStart){ bestBroken=true; celebrateBest(); }
 }
 function doLaunch(){ p.state='spring'; anim(laneX(p.lane),rowY(p.row+3),.34,30); }
@@ -490,6 +503,15 @@ function startFall(lane,bounce,inPlace){
   p.checkRow=(bounce||inPlace)?p.row-1:p.row;
   falls++; sfx('fall'); vib(25);
 }
+// stepping onto spikes bumps you back onto the platform you came from and costs a moment
+function spikeBounce(nr,lane){
+  sfx('spike'); shake(3,.2); vib(35); ladder=0;
+  puff(laneX(lane),rowY(nr)-4,8,'#ff5a5a',40,80,.4);
+  const hx=p.x, hy=p.y;
+  p.x=lerp(hx,laneX(lane),.45); p.y=lerp(hy,rowY(nr),.45);
+  anim(p.riding?laneX(movPos(p.riding,gt)):hx, hy, .16, 5);
+  p.state='stun'; p.stunT=.42; p.hurt=.42;
+}
 function knock(){ sfx('spike'); shake(3,.2); puff(laneX(p.lane),rowY(p.row)-6,6,'#ff5a5a',40,80,.4); p.y=rowY(p.row); p.x=laneX(p.lane); startFall(p.lane,true,false); }
 function land(j,ty){
   const drop=Math.max(0,p.fromRow-j);
@@ -505,7 +527,7 @@ function updatePlayer(dt){
     const a=p.anim; a.t+=dt; const k=Math.min(1,a.t/a.dur);
     p.x=lerp(a.fx,a.tx,k); p.y=lerp(a.fy,a.ty,k)-Math.sin(k*Math.PI)*a.arc;
     if(p.state==='spring' && Math.random()<.6) parts.push({x:p.x,y:p.y,vx:rnd(-10,10),vy:rnd(5,20),g:0,life:.35,c:THEMES[themeAt(p.row)].acc,s:1});
-    if(k>=1){ p.x=a.tx; p.y=a.ty; p.anim=null; if(p.state==='hop') p.state='idle'; else if(p.state==='spring') landSpring(); }
+    if(k>=1){ p.x=a.tx; p.y=a.ty; p.anim=null; if(p.state==='hop'){ p.state='idle'; p.land=.08; } else if(p.state==='spring') landSpring(); }
   }
   if(p.state==='launch' && gt>=p.launchAt && !p.anim) doLaunch();
   if(p.state==='fall'){
@@ -521,6 +543,8 @@ function updatePlayer(dt){
     }
   }
   if(p.state==='stun'){ p.stunT-=dt; if(p.stunT<=0) p.state='idle'; }
+  if(p.land>0) p.land-=dt;
+  if(p.hurt>0) p.hurt-=dt;
   if(p.riding && (p.state==='idle'||p.state==='stun') && !p.anim){
     const pos=movPos(p.riding,gt); p.x=laneX(pos); p.lane=clamp(Math.round(pos),0,LANES-1);
   }
@@ -537,6 +561,7 @@ function updateRows(dt){
     for(let l=0;l<LANES;l++){
       const c=row.cells[l]; if(!c) continue;
       if(c.sq>0) c.sq-=dt;
+      if(c.dip>0) c.dip-=dt;
       if(c.until && !c.broken){
         if(Math.random()<.3) parts.push({x:laneX(l)+rnd(-10,10),y:rowY(i)+8,vx:0,vy:10,g:120,life:.4,c:THEMES[row.th].blk.d,s:1});
         if(gt>=c.until){
@@ -601,6 +626,10 @@ function openChest(c,lane,r){
   if(tier>=2){ gflash=Math.max(gflash,tier===3?.7:.45); shake(2,.25); }
   sfx(tier>=2?'jackpot':'chest'); vib(tier>=2?[30,40,80]:25);
 }
+function mileFx(big){
+  hH.classList.add('mile'); clearTimeout(hH._m); hH._m=setTimeout(()=>hH.classList.remove('mile'),big?520:260);
+  if(big){ for(let i=0;i<18;i++){ const a=i/18*Math.PI*2; parts.push({x:p.x+Math.cos(a)*4,y:p.y-8+Math.sin(a)*4,vx:Math.cos(a)*45,vy:Math.sin(a)*45,g:0,life:.45,c:i%2?'#ffd84a':'#fff1dc',s:1}); } }
+}
 function celebrateBest(){
   const y=rowY(bestAtStart)-4;
   for(let i=0;i<46;i++) parts.push({x:rnd(0,W),y:y+rnd(-4,4),vx:rnd(-25,25),vy:rnd(-120,-40),g:160,life:rnd(.8,1.4),c:pick(['#ffd84a','#fff1dc','#ff7a1a','#4dffd2','#ff5d7e']),s:Math.random()<.35?2:1});
@@ -628,26 +657,65 @@ function audioInit(){
   const AC=window.AudioContext||window.webkitAudioContext; if(!AC) return;
   try{
     const ac=new AC(); AU.ac=ac; AU.out=ac.createGain(); AU.out.gain.value=.9; AU.out.connect(ac.destination);
+    AU.mbus=ac.createGain(); AU.mbus.gain.value=.6; AU.mbus.connect(AU.out);
     const b=ac.createBuffer(1,ac.sampleRate,ac.sampleRate), d=b.getChannelData(0);
     for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1; AU.noise=b;
   }catch(e){ AU.ac=null; }
 }
-function tone(f,dur,type,vol,slide,when){
+function tone(f,dur,type,vol,slide,when,bus){
   const ac=AU.ac; if(!ac) return; const t=when||ac.currentTime;
   const o=ac.createOscillator(), g=ac.createGain(); o.type=type||'square';
   o.frequency.setValueAtTime(f,t); if(slide) o.frequency.exponentialRampToValueAtTime(Math.max(20,slide),t+dur);
   g.gain.setValueAtTime(vol||.05,t); g.gain.exponentialRampToValueAtTime(.0001,t+dur);
-  o.connect(g); g.connect(AU.out); o.start(t); o.stop(t+dur+.03);
+  o.connect(g); g.connect(bus||AU.out); o.start(t); o.stop(t+dur+.03);
 }
-function noise(dur,vol,freq,when){
+function noise(dur,vol,freq,when,bus,ftype){
   const ac=AU.ac; if(!ac||!AU.noise) return; const t=when||ac.currentTime;
-  const s=ac.createBufferSource(); s.buffer=AU.noise; const f=ac.createBiquadFilter(); f.type='lowpass'; f.frequency.value=freq||1200;
+  const s=ac.createBufferSource(); s.buffer=AU.noise; const f=ac.createBiquadFilter(); f.type=ftype||'lowpass'; f.frequency.value=freq||1200;
   const g=ac.createGain(); g.gain.setValueAtTime(vol||.08,t); g.gain.exponentialRampToValueAtTime(.0001,t+dur);
-  s.connect(f); f.connect(g); g.connect(AU.out); s.start(t,Math.random()*.5); s.stop(t+dur+.03);
+  s.connect(f); f.connect(g); g.connect(bus||AU.out); s.start(t,Math.random()*.5); s.stop(t+dur+.03);
 }
-const PENTA=[0,2,4,7,9];
+function kick(t){ const ac=AU.ac, o=ac.createOscillator(), g=ac.createGain(); o.type='sine'; o.frequency.setValueAtTime(150,t); o.frequency.exponentialRampToValueAtTime(42,t+.12); g.gain.setValueAtTime(.26,t); g.gain.exponentialRampToValueAtTime(.0001,t+.16); o.connect(g); g.connect(AU.mbus); o.start(t); o.stop(t+.2); }
+function snare(t){ noise(.12,.08,2600,t,AU.mbus); tone(190,.08,'triangle',.05,110,t,AU.mbus); }
+function hat(t,v){ noise(.03,v||.022,7500,t,AU.mbus,'highpass'); }
+// each zone has its own short song: key, scale, 4-chord progression, melody motif and drum feel
+const SCALES={minor:[0,2,3,5,7,8,10], dorian:[0,2,3,5,7,9,10], major:[0,2,4,5,7,9,11], mixo:[0,2,4,5,7,9,10]};
+const SONGS=[
+  {key:57, scale:'minor',  prog:[0,5,6,4], lead:'square',   motif:0, bpm:116, kick:[0,8]},
+  {key:62, scale:'dorian', prog:[0,3,0,6], lead:'square',   motif:1, bpm:112, kick:[0,8,11]},
+  {key:64, scale:'minor',  prog:[0,5,2,6], lead:'triangle', motif:2, bpm:120, kick:[0,8]},
+  {key:55, scale:'mixo',   prog:[0,6,3,0], lead:'square',   motif:1, bpm:124, kick:[0,6,8]},
+  {key:60, scale:'major',  prog:[0,5,3,4], lead:'triangle', motif:0, bpm:118, kick:[0,8]},
+  {key:54, scale:'minor',  prog:[0,6,5,4], lead:'sawtooth', motif:2, bpm:132, kick:[0,3,8,11]},
+  {key:59, scale:'minor',  prog:[0,3,5,4], lead:'sawtooth', motif:1, bpm:128, kick:[0,8,10]},
+];
+// melody motifs, one entry per bar: [16th step, scale degree above the chord root, length in 16ths]
+const MOTIFS=[
+  [[[0,4,2],[2,2,2],[4,0,2],[6,2,2],[8,4,3],[11,5,1],[12,4,2],[14,2,2]],
+   [[0,7,3],[3,6,1],[4,4,2],[6,2,2],[8,4,4],[12,2,2],[14,1,2]],
+   [[0,4,2],[2,2,2],[4,0,2],[6,2,2],[8,4,3],[11,5,1],[12,7,2],[14,6,2]],
+   [[0,4,2],[2,5,2],[4,4,2],[6,2,2],[8,0,6],[14,-1,2]]],
+  [[[0,0,1],[2,2,1],[3,4,1],[4,7,2],[6,4,1],[8,5,1],[10,4,1],[11,2,1],[12,4,3]],
+   [[0,2,1],[2,4,1],[3,5,1],[4,7,2],[7,9,1],[8,7,2],[10,5,1],[12,4,4]],
+   [[0,0,1],[2,2,1],[3,4,1],[4,7,2],[6,4,1],[8,5,1],[10,4,1],[11,2,1],[12,4,3]],
+   [[0,7,2],[2,5,2],[4,4,2],[6,2,2],[8,0,4],[12,-3,4]]],
+  [[[0,0,2],[2,4,2],[4,7,2],[6,4,2],[8,2,2],[10,4,2],[12,7,2],[14,9,2]],
+   [[0,7,2],[2,4,2],[4,2,2],[6,4,2],[8,5,2],[10,4,2],[12,2,2],[14,1,2]],
+   [[0,0,2],[2,4,2],[4,7,2],[6,4,2],[8,2,2],[10,4,2],[12,7,2],[14,9,2]],
+   [[0,9,2],[2,7,2],[4,5,2],[6,4,2],[8,2,4],[12,0,4]]],
+];
+const BASSLINE=[0,null,0,null,7,null,0,null,0,null,0,4,7,null,4,null];
+const ARPLINE=[0,2,4,7,4,2,0,2,4,7,9,7,4,2,4,7];
+function sn(sg,deg){ const sc=SCALES[sg.scale]; return sg.key+sc[((deg%7)+7)%7]+12*Math.floor(deg/7); }
+// step sound: a pluck that climbs the zone's scale while you keep climbing, plus a footstep for the material
+let ladder=0, lastStepT=-9;
+const MAT=[[900,.05,0],[1300,.05,0],[5200,.03,2400],[650,.06,0],[450,.04,0],[3000,.045,0],[6000,.03,1800]];
+function matTick(t){ const m=MAT[themeAt(p.row)]; noise(.035,m[1],m[0],t); if(m[2]) tone(m[2],.05,'triangle',.018,0,t); }
 const SFX={
-  step:()=>tone(392*Math.pow(2,(PENTA[maxRow%5]+12*(Math.floor(maxRow/5)%2))/12),.06,'square',.04),
+  step:()=>{ const sg=SONGS[themeAt(p.row)], pent=(sg.scale==='major'||sg.scale==='mixo')?[0,2,4,7,9]:[0,3,5,7,10], i=ladder%10, m=sg.key+pent[i%5]+12*Math.floor(i/5), t=AU.ac.currentTime;
+    tone(mf(m),.11,'triangle',.07,0,t); tone(mf(m+12),.05,'square',.014,0,t); matTick(t); },
+  mile:()=>{ const t=AU.ac.currentTime; tone(1568,.12,'triangle',.05,0,t); tone(2093,.18,'triangle',.04,0,t+.06); },
+  mile100:()=>{ const t=AU.ac.currentTime; [1047,1319,1568,2093].forEach((f,i)=>tone(f,.16,'triangle',.05,0,t+i*.05)); },
   ice:()=>tone(1400,.12,'triangle',.03,2200),
   coin:()=>{ const t=AU.ac.currentTime; tone(988,.06,'square',.045,0,t); tone(1319,.1,'square',.045,0,t+.06); },
   miss:()=>tone(330,.08,'square',.04,200),
@@ -668,23 +736,31 @@ const SFX={
   deny:()=>tone(150,.14,'square',.05),
 };
 function sfx(n){ if(!save.sfx||!AU.ac) return; try{ SFX[n](); }catch(e){} }
-const BASS=[0,0,12,0,0,0,10,7,0,0,12,0,3,5,7,5];
-const ARP=[0,3,7,10,12,10,7,3];
-const ROOTS=[45,47,52,43,48,41,50];
 const mf=m=>440*Math.pow(2,(m-69)/12);
 function musicTick(){
   const ac=AU.ac, M=AU.mus;
-  if(!ac||!save.music||state!=='play'||paused||!started||p.state==='dead'){ M.next=0; return; }
-  const bpm=108+Math.min(56,lavaSpeed*11), spb=60/bpm/4;
+  const mode = (!ac||!save.music||paused) ? null : (state==='play'&&p.state!=='dead') ? 'play' : (state==='title'||state==='over') ? 'calm' : null;
+  if(!mode){ M.next=0; return; }
+  if(M.mode!==mode){ M.mode=mode; M.step=0; M.next=0; M.song=mode==='play'?themeAt(maxRow):0; }
+  const cur=SONGS[M.song|0];
+  const bpm = mode==='play' ? cur.bpm+Math.min(24,lavaSpeed*5) : 92, spb=60/bpm/4;
   if(M.next<ac.currentTime) M.next=ac.currentTime+.05;
-  const root=ROOTS[themeAt(maxRow)];
   while(M.next<ac.currentTime+.15){
-    const s=M.step, t=M.next;
-    if(s%2===0) tone(mf(root+BASS[(s>>1)%16]),spb*1.7,'triangle',.08,0,t);
-    if(s%8===0) tone(150,.12,'sine',.12,40,t);
-    if(s%4===2) noise(.035,.03,7000,t);
-    if(s%4===0 && s%16!==0) tone(mf(root+24+ARP[(s>>2)%8]),spb*1.2,'square',.016,0,t);
-    M.next+=spb; M.step=(s+1)%64;
+    const t=M.next, st=M.step%16, bar=(M.step>>4)&3;
+    if(st===0) M.song = mode==='play' ? themeAt(maxRow) : 0;
+    const sg=SONGS[M.song], root=sg.prog[bar], bus=AU.mbus, bd=BASSLINE[st];
+    if(bd!==null) tone(mf(sn(sg,root+bd)-24),spb*1.6,'triangle',mode==='play'?.1:.06,0,t,bus);
+    if(mode==='play'){
+      if(sg.kick.includes(st)) kick(t);
+      if(st===4||st===12) snare(t);
+      if(st%2===0) hat(t);
+      const danger = started && curRow()-L<4;
+      if(danger && st%2===1) hat(t,.018);
+      if(danger && (st===2||st===10)) tone(mf(sg.key+24),.08,'square',.014,0,t,bus);
+      for(const [ms,dg,len] of MOTIFS[sg.motif][bar]) if(ms===st) tone(mf(sn(sg,root+dg)+12),spb*len*.9,sg.lead,sg.lead==='sawtooth'?.022:.03,0,t,bus);
+      tone(mf(sn(sg,root+ARPLINE[st])),spb*.8,'triangle',.014,0,t,bus);
+    } else if(st%2===0) tone(mf(sn(sg,root+ARPLINE[st])),spb*1.6,'triangle',.02,0,t,bus);
+    M.next+=spb; M.step=(M.step+1)%64;
   }
 }
 
@@ -851,11 +927,12 @@ function drawRows(){
   const lo=Math.max(0,Math.floor(-(viewY+H)/DY)-2), hi=Math.ceil(-viewY/DY)+2;
   getRow(hi+5);
   for(let i=hi;i>=lo;i--){
-    const row=run.rows[i], sy=rowY(i)-viewY;
-    if(i===0){ drawFloor(sy); continue; }
-    if(row.wind) drawWind(row,sy);
+    const row=run.rows[i], sy0=rowY(i)-viewY;
+    if(i===0){ drawFloor(sy0); continue; }
+    if(row.wind) drawWind(row,sy0);
     for(let l=0;l<LANES;l++){
       const c=row.cells[l]; if(!c||c.broken) continue;
+      const sy=sy0+(c.dip>0?1:0);
       drawPlat(row.th,c,Math.round(laneX(l)-BW/2),sy,c.t);
       if(c.chest){
         ctx.drawImage(c.opened?CHEST_OPEN_SPR:CHEST_SPR,Math.round(laneX(l)-5),sy-(c.opened?9:7));
@@ -864,7 +941,7 @@ function drawRows(){
       if(c.item==='rocket' && !c.used) drawRocketItem(laneX(l),sy);
       if(c.coin && !c.got) drawCoin(laneX(l),sy-10+(((gt*3+i)|0)%2));
     }
-    if(row.mov) drawPlat(row.th,null,Math.round(laneX(movPos(row,gt))-BW/2),sy,'moving');
+    if(row.mov) drawPlat(row.th,null,Math.round(laneX(movPos(row,gt))-BW/2),sy0,'moving');
   }
   if(state==='play' && !save.tut && p.state==='idle'){
     const h=hintDx();
@@ -936,10 +1013,14 @@ function drawPlayer(){
   const img=(air?sk.jump:sk.stand)[p.dir>=0?0:1];
   const x=Math.round(p.x-5); let y=Math.round(p.y-14-viewY);
   if(p.state==='rocket') y-=2;
-  if(p.state==='idle') y+=((gt*2)|0)%2;
+  if(p.state==='idle'){ y+=((gt*2)|0)%2; const cc=(p.row>0&&!p.riding)?getRow(p.row).cells[p.lane]:null; if(cc&&cc.dip>0) y+=1; }
   if(p.state==='launch') y+=2;
   if(p.state==='dead'){ ctx.globalAlpha=Math.max(0,1-deadT*2.2); y+=Math.round(deadT*24); }
-  ctx.drawImage(img,x,y); ctx.globalAlpha=1;
+  if(p.hurt>0 && ((gt*20)|0)%2) ctx.globalAlpha=Math.min(ctx.globalAlpha,.25);
+  if(p.land>0 && p.state==='idle') ctx.drawImage(img,x-1,y+1,12,13);
+  else if(p.state==='hop') ctx.drawImage(img,x,y-1,10,15);
+  else ctx.drawImage(img,x,y);
+  ctx.globalAlpha=1;
   // the rocket is drawn over the legs so the climber straddles it
   if(p.state==='rocket'){
     const rx=Math.round(p.x-4), ry=Math.round(p.y-viewY-7);
