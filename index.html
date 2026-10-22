@@ -59,14 +59,14 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer}
 #btnPause i{display:block;width:calc(var(--u)*1.6);height:calc(var(--u)*4.4);background:var(--ink)}
 #btnPause:focus-visible,.btn:focus-visible,.skin:focus-visible,.tog:focus-visible{outline:calc(var(--u)*.8) solid var(--gold);outline-offset:calc(var(--u)*.6)}
 
-.banner{position:absolute;left:0;right:0;top:30%;text-align:center;opacity:0;pointer-events:none;background:rgba(10,4,8,.8);box-shadow:0 calc(var(--u)*-.8) 0 var(--ember),0 calc(var(--u)*.8) 0 var(--ember);padding-block:calc(var(--u)*3)}
-.banner.show{animation:banner 2.8s linear forwards}
-@keyframes banner{0%{opacity:1;transform:translateX(-100%)}6%{transform:translateX(-30%)}10%{transform:translateX(0)}86%{opacity:1;transform:translateX(0)}92%{transform:translateX(40%)}100%{opacity:1;transform:translateX(110%)}}
-.b-en{font-family:var(--f-pixel);font-size:calc(var(--u)*3.4);color:var(--ember);letter-spacing:calc(var(--u)*.4)}
-.b-kr{font-size:calc(var(--u)*9);line-height:1.15;margin-top:calc(var(--u)*.8)}
-.b-tip{font-size:calc(var(--u)*4.2);color:var(--gold);margin-top:calc(var(--u)*1.2)}
-.b-spd{font-family:var(--f-pixel);font-size:calc(var(--u)*3);color:var(--dim);margin-top:calc(var(--u)*1.2)}
-
+.zone{position:absolute;left:50%;top:calc(var(--u)*27);transform:translate(-50%,calc(var(--u)*-2));display:flex;flex-direction:column;align-items:center;gap:calc(var(--u)*.6);opacity:0;pointer-events:none;white-space:nowrap}
+.zone.show{animation:zone 2s ease-out forwards}
+.zone.show.tip{animation-duration:2.6s}
+@keyframes zone{0%{opacity:0;transform:translate(-50%,calc(var(--u)*-2))}8%{opacity:1;transform:translate(-50%,0)}80%{opacity:1;transform:translate(-50%,0)}100%{opacity:0;transform:translate(-50%,0)}}
+.z-name{display:flex;align-items:baseline;gap:calc(var(--u)*1.6);font-size:calc(var(--u)*5.2);background:rgba(10,4,8,.55);padding:calc(var(--u)*.8) calc(var(--u)*3) calc(var(--u)*1.1);box-shadow:0 0 0 calc(var(--u)*.5) rgba(0,0,0,.6)}
+.z-no{font-family:var(--f-pixel);font-weight:700;font-size:calc(var(--u)*3.4);color:var(--ember)}
+.z-tip{font-size:calc(var(--u)*3.8);color:var(--gold)}
+#hH.fire{color:var(--gold);text-shadow:calc(var(--u)*-.6) 0 0 #000,calc(var(--u)*.6) 0 0 #000,0 calc(var(--u)*-.6) 0 #000,0 calc(var(--u)*.6) 0 #000,0 calc(var(--u)*1.3) 0 #000,0 0 calc(var(--u)*3) rgba(255,122,26,.9)}
 .pads{position:absolute;left:0;right:0;bottom:0;display:flex;gap:calc(var(--u)*2.4);padding:0 calc(var(--u)*2.4) calc(var(--u)*2.4)}
 .pad{flex:1;height:calc(var(--u)*16);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:calc(var(--u)*.8);background:rgba(24,12,20,.55);box-shadow:inset 0 calc(var(--u)*-1.2) 0 rgba(0,0,0,.45),0 0 0 calc(var(--u)*.7) rgba(0,0,0,.85)}
 .pad svg{width:calc(var(--u)*7);height:calc(var(--u)*7);fill:var(--ink)}
@@ -121,7 +121,7 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer}
 .tog{border:0;background:#160c14;font-size:calc(var(--u)*4.2);padding:calc(var(--u)*1.6) calc(var(--u)*3);min-width:calc(var(--u)*15);box-shadow:0 0 0 calc(var(--u)*.6) #000}
 .tog[aria-pressed="true"]{background:var(--ember);color:#2a0a04}
 .set-note{margin:0;font-size:calc(var(--u)*3.8);color:var(--dim);line-height:1.45}
-@media (prefers-reduced-motion:reduce){.banner.show{animation:fade 2.8s linear forwards}@keyframes fade{0%,90%{opacity:1}100%{opacity:0}}.tap,.newbest,.pad.hint,.meter.hot{animation:none}}
+@media (prefers-reduced-motion:reduce){.zone.show{animation:fade 2s linear forwards}@keyframes fade{0%,85%{opacity:1}100%{opacity:0}}.tap,.newbest,.pad.hint,.meter.hot{animation:none}}
 #app{box-sizing:border-box;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
 </style>
 </head>
@@ -138,7 +138,7 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer}
         <div class="lava-row"><span class="lbl">LAVA</span><div class="meter" id="meter"><i id="meterFill"></i></div><span id="meterNum">5</span></div>
       </div>
       <button id="btnPause" aria-label="일시정지"><i></i><i></i></button>
-      <div class="banner" id="banner"><div class="b-en" id="bEn">ZONE 1</div><div class="b-kr" id="bKr">용암 동굴</div><div class="b-tip" id="bTip"></div><div class="b-spd" id="bSpd"></div></div>
+      <div class="zone" id="zone" aria-live="polite"><div class="z-name px-out"><span class="z-no" id="zNo">2</span><span id="zKr">무너진 유적</span></div><div class="z-tip px-out" id="zTip" hidden></div></div>
       <div class="tut px-out" id="tut" hidden>깜빡이는 버튼 쪽 발판으로 올라가세요</div>
       <div class="pads">
         <div class="pad" id="pad0"><svg viewBox="0 0 12 12" aria-hidden="true"><rect x="1" y="1" width="6" height="2"/><rect x="1" y="1" width="2" height="6"/><rect x="3" y="3" width="2" height="2"/><rect x="5" y="5" width="2" height="2"/><rect x="7" y="7" width="2" height="2"/><rect x="9" y="9" width="2" height="2"/></svg><span>왼쪽 위</span></div>
@@ -216,7 +216,7 @@ const RM = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)'
 
 /* ================= save ================= */
 const KEY = 'lavaclimb.save.v2';
-const save = {best:0, coins:0, owned:['climber'], skin:'climber', sfx:true, music:true, vib:true, tut:false};
+const save = {best:0, coins:0, owned:['climber'], skin:'climber', sfx:true, music:true, vib:true, tut:false, seen:[]};
 try { const raw = localStorage.getItem(KEY); if (raw) Object.assign(save, JSON.parse(raw)); } catch (e) {}
 function persist(){ try { localStorage.setItem(KEY, JSON.stringify(save)); } catch (e) {} }
 
@@ -239,19 +239,19 @@ const rowY = r => -r*DY;
 
 /* ================= themes / zones ================= */
 const THEMES = [
-  {id:'cave', kr:'용암 동굴', en:'MAGMA CAVE', sky:['#12070c','#3a1210'], far:'#24100f', mid:'#3d1c17', acc:'#ff8a3d', mech:[], tip:'갈림길을 잘 읽고 올라라',
+  {id:'cave', kr:'용암 동굴', en:'MAGMA CAVE', sky:['#12070c','#3a1210'], far:'#24100f', mid:'#3d1c17', acc:'#ff8a3d', mech:[], tip:'',
    blk:{o:'#1c1418',t:'#9c8f9a',b:'#6b6170',d:'#433b4a',x:'#c3b8c2'}},
-  {id:'ruins', kr:'무너진 유적', en:'FALLEN RUINS', sky:['#22162a','#6b4a36'], far:'#3a2834', mid:'#5a4232', acc:'#ffd27a', mech:['crumble'], tip:'금 간 발판은 곧 무너진다',
+  {id:'ruins', kr:'무너진 유적', en:'FALLEN RUINS', sky:['#22162a','#6b4a36'], far:'#3a2834', mid:'#5a4232', acc:'#ffd27a', mech:['crumble'], tip:'금 간 발판은 무너진다',
    blk:{o:'#3a2414',t:'#f0d28e',b:'#cfa060',d:'#94683a',x:'#fff0c4'}},
-  {id:'ice', kr:'얼음 절벽', en:'FROST CLIFF', sky:['#0b2236','#3f8fb8'], far:'#16405e', mid:'#2c6688', acc:'#bff4ff', mech:['ice'], tip:'얼음을 옆으로 밟으면 한 칸 더 미끄러진다',
+  {id:'ice', kr:'얼음 절벽', en:'FROST CLIFF', sky:['#0b2236','#3f8fb8'], far:'#16405e', mid:'#2c6688', acc:'#bff4ff', mech:['ice'], tip:'옆으로 밟으면 한 칸 미끄러진다',
    blk:{o:'#1d3a52',t:'#ffffff',b:'#bfe9ff',d:'#7fb8d8',x:'#ffffff'}},
-  {id:'forest', kr:'거대 버섯 숲', en:'SPORE FOREST', sky:['#0b1c1c','#25503a'], far:'#14302a', mid:'#1f4634', acc:'#ff5d7e', mech:['spring'], tip:'버섯을 밟으면 세 층을 뛰어오른다',
+  {id:'forest', kr:'거대 버섯 숲', en:'SPORE FOREST', sky:['#0b1c1c','#25503a'], far:'#14302a', mid:'#1f4634', acc:'#ff5d7e', mech:['spring'], tip:'버섯은 세 층 점프',
    blk:{o:'#21140c',t:'#9fd86a',b:'#86593a',d:'#5a3a24',x:'#d4f5a0'}},
-  {id:'sky', kr:'하늘 섬', en:'SKY ISLES', sky:['#3a74d6','#a6dcf6'], far:'#8fc2ee', mid:'#d4ecfb', acc:'#ffe066', mech:['moving'], tip:'움직이는 구름에 타이밍을 맞춰라',
+  {id:'sky', kr:'하늘 섬', en:'SKY ISLES', sky:['#3a74d6','#a6dcf6'], far:'#8fc2ee', mid:'#d4ecfb', acc:'#ffe066', mech:['moving'], tip:'움직이는 구름에 맞춰 올라라',
    blk:{o:'#5b7298',t:'#ffffff',b:'#e4ecf6',d:'#b4c6dc',x:'#ffffff'}},
-  {id:'storm', kr:'번개 폭풍', en:'THUNDERHEAD', sky:['#0a0818','#2a2046'], far:'#181430', mid:'#2a2248', acc:'#b9f1ff', mech:['wind'], dark:true, tip:'바람이 옆으로 민다 · 번개가 길을 비춘다',
+  {id:'storm', kr:'번개 폭풍', en:'THUNDERHEAD', sky:['#0a0818','#2a2046'], far:'#181430', mid:'#2a2248', acc:'#b9f1ff', mech:['wind'], dark:true, tip:'바람이 옆으로 민다',
    blk:{o:'#14151f',t:'#a3a9c2',b:'#61667f',d:'#3d4156',x:'#d8dcef'}},
-  {id:'orbit', kr:'궤도 정거장', en:'ORBIT STATION', sky:['#020208','#16103a'], far:'#0d0a24', mid:'#262052', acc:'#4dffd2', mech:['phase','moving'], tip:'깜빡이는 발판은 사라진다',
+  {id:'orbit', kr:'궤도 정거장', en:'ORBIT STATION', sky:['#020208','#16103a'], far:'#0d0a24', mid:'#262052', acc:'#4dffd2', mech:['phase','moving'], tip:'깜빡이면 곧 사라진다',
    blk:{o:'#1d2130',t:'#e0e5ef',b:'#949db2',d:'#5a6278',x:'#ffffff'}},
 ];
 const ICE = THEMES[2].blk;
@@ -355,13 +355,17 @@ let L=-5, lavaSpeed=0, runT=0, gt=0;
 let camY=0, viewY=0, shakeT=0, shakeA=0;
 let maxRow=0, maxZone=0, coinsRun=0, falls=0, deadT=0, overShown=false;
 let parts=[], flash=0, nextBolt=3, boltX=0, boltSeed=0;
+// fire streak: quick consecutive climbs set the climber alight
+const FIRE_GAP=0.34, FIRE_ON=6, FIRE_HOT=20;
+let streak=0, lastHop=-9, fire=0, fireLvl=0;
+function breakStreak(){ streak=0; }
 const p = {};
 
 function resetWorld(){
   newRun(); getRow(60);
   Object.assign(p,{row:0,lane:2,dir:1,state:'idle',x:laneX(2),y:0,anim:null,vy:0,fallLane:2,checkRow:0,fromRow:0,stunT:0,launchAt:0,riding:null});
   L=-5; lavaSpeed=0; runT=0; maxRow=0; maxZone=0; coinsRun=0; falls=0; deadT=0; overShown=false;
-  parts.length=0; started=false; flash=0; nextBolt=3;
+  parts.length=0; started=false; flash=0; nextBolt=3; streak=0; lastHop=-9; fire=0; fireLvl=0;
   camY=p.y-H*.64;
 }
 
@@ -382,6 +386,7 @@ function act(dx){
   p.row=nr; p.lane=lane; p.state='hop';
   anim(ty==='moving' ? laneX(movPos(row,gt)) : laneX(lane), rowY(nr), .08, 4);
   if(ty==='spike'){ knock(); return; }
+  streak = (gt-lastHop<FIRE_GAP) ? streak+1 : 1; lastHop=gt;
   sfx('step');
   arrive(nr,lane,ty,dx);
 }
@@ -396,7 +401,7 @@ function arrive(r,lane,ty,dx){
   if(r>maxRow){
     maxRow=r;
     const z=Math.floor(r/ZLEN);
-    if(z>maxZone){ maxZone=z; coinsRun+=5; showBanner(z); sfx('zone'); }
+    if(z>maxZone){ maxZone=z; coinsRun+=5; showZone(z); sfx('zone'); }
   }
   const c=row.cells[lane];
   if(c && ty!=='moving'){
@@ -420,7 +425,7 @@ function startFall(lane,bounce,inPlace){
   p.riding=null; p.anim=null;
   p.state='fall'; p.fallLane=lane; p.fromRow=p.row; p.vy=bounce?-150:(inPlace?0:-80);
   p.checkRow=(bounce||inPlace)?p.row-1:p.row;
-  falls++; sfx('fall'); vib(25);
+  falls++; sfx('fall'); vib(25); breakStreak();
 }
 function knock(){ sfx('spike'); shake(3,.2); puff(laneX(p.lane),rowY(p.row)-6,6,'#ff5a5a',40,80,.4); p.y=rowY(p.row); p.x=laneX(p.lane); startFall(p.lane,true,false); }
 function land(j,ty){
@@ -480,6 +485,7 @@ function updateRows(dt){
   }
 }
 function die(){
+  breakStreak();
   p.state='dead'; deadT=0; sfx('die'); vib([60,40,140]); shake(5,.45);
   for(let k=0;k<26;k++) parts.push({x:p.x+rnd(-4,4),y:p.y,vx:rnd(-45,45),vy:rnd(-110,-30),g:260,life:rnd(.5,1),c:k%3?'#ffc23a':'#fff2a8',s:k%4?1:2});
 }
@@ -531,6 +537,8 @@ const SFX={
   die:()=>{ noise(.6,.2,500); tone(320,.7,'sawtooth',.06,50); },
   zone:()=>{ const t=AU.ac.currentTime; [523,659,784,1047].forEach((f,i)=>tone(f,.12,'square',.045,0,t+i*.08)); },
   thunder:()=>noise(.9,.18,380),
+  ignite:()=>{ noise(.25,.07,2400); tone(330,.18,'triangle',.04,660); },
+  blaze:()=>{ noise(.35,.09,3200); tone(440,.22,'triangle',.05,990); },
   ui:()=>tone(720,.035,'square',.035),
   deny:()=>tone(150,.14,'square',.05),
 };
@@ -757,6 +765,7 @@ function drawPlayer(){
   if(p.state==='idle') y+=((gt*2)|0)%2;
   if(p.state==='launch') y+=2;
   if(p.state==='dead'){ ctx.globalAlpha=Math.max(0,1-deadT*2.2); y+=Math.round(deadT*24); }
+  if(p.state!=='dead') drawFire(x,y);
   ctx.drawImage(img,x,y); ctx.globalAlpha=1;
   if(p.state==='stun'){ const a=gt*9; R(x+5+Math.round(Math.cos(a)*5),y-2+Math.round(Math.sin(a)*1.5),1,1,'#ffd84a'); R(x+5+Math.round(Math.cos(a+3.14)*5),y-2+Math.round(Math.sin(a+3.14)*1.5),1,1,'#ffd84a'); }
 }
@@ -856,7 +865,7 @@ function update(dt){
       runT+=dt; lavaSpeed=lavaSpeedAt(runT); L+=lavaSpeed*dt;
       const g=lavaGap(runT); if(L<p.row-g) L=p.row-g;
     }
-    updatePlayer(dt); updateRows(dt);
+    updatePlayer(dt); updateRows(dt); updateFire(dt);
     if(p.state==='dead'){ deadT+=dt; if(deadT>1.1 && !overShown) gameOver(); }
     if(!save.tut && maxRow>=15){ save.tut=true; persist(); }
     if(darknessAmt()>.2 && p.state!=='dead'){ nextBolt-=dt; if(nextBolt<=0){ flash=1; nextBolt=rnd(2.2,4); boltX=(Math.random()*(W-20)+10)|0; boltSeed=(Math.random()*1e6)|0; sfx('thunder'); } }
@@ -870,10 +879,41 @@ function update(dt){
   updateHUD();
 }
 
+function updateFire(dt){
+  if(streak && gt-lastHop>FIRE_GAP+.2 && p.state!=='launch' && p.state!=='spring') breakStreak();
+  const lvl = streak>=FIRE_HOT ? 2 : streak>=FIRE_ON ? 1 : 0;
+  if(lvl>fireLvl){ sfx(lvl===2?'blaze':'ignite'); if(lvl===2) vib(15); }
+  fireLvl=lvl;
+  const target = lvl===2 ? 1 : lvl===1 ? .6 : 0;
+  fire += (target-fire)*Math.min(1,dt*(target>fire?14:5));
+  if(fire>.08 && p.state!=='dead' && Math.random()<dt*(18+fire*30)){
+    parts.push({x:p.x+rnd(-4,4),y:p.y-rnd(2,10),vx:rnd(-8,8),vy:rnd(-40,-18),g:-10,life:rnd(.25,.5),c:Math.random()<.5?'#ffc23a':(fire>.8?'#fff2a8':'#ff7a1a'),s:1});
+  }
+}
+function drawFire(x,y){
+  if(fire<.06) return;
+  const h=fire, f=(gt*14)|0;
+  // soft round glow, then flame tongues licking up the climber's sides and over the head (sprite is 10x14 at x,y)
+  ctx.globalAlpha=.16*h; circ(ctx,x+5,y+8,Math.round(7+3*h),'#ff7a1a'); ctx.globalAlpha=1;
+  const tongue=(cx,base,len)=>{
+    if(len<=0) return;
+    R(cx,base-len,1,len,'#e2361c');
+    if(len>1) R(cx,base-len+1,1,len-1,'#ff7a1a');
+    if(len>3) R(cx,base-Math.ceil(len*.55),1,Math.ceil(len*.55),'#ffc23a');
+    if(h>.8 && len>5) R(cx,base-Math.ceil(len*.25),1,Math.ceil(len*.25),'#fff2a8');
+  };
+  const side=[[-2,6],[-1,9],[10,9],[11,6]];
+  side.forEach(([dx,m],i)=>tongue(x+dx,y+13,Math.round((m*.55+hash(i,f)*m*.6)*h)));
+  for(let i=0;i<6;i++){
+    const m=(i===2||i===3)?7:5;
+    tongue(x+2+i,y+1,Math.round((1+hash(i+9,f)*m)*h));
+  }
+}
+
 /* ================= HUD / screens ================= */
 const hud=$('hud'), hH=$('hH'), hBest=$('hBest'), hCoins=$('hCoins'), meter=$('meter'), meterFill=$('meterFill'), meterNum=$('meterNum');
 const pads=[$('pad0'),$('pad1'),$('pad2')], tut=$('tut');
-const shown={h:-1,c:-1,d:-1,f:-1,hot:null,hint:undefined};
+const shown={h:-1,c:-1,d:-1,f:-1,hot:null,hint:undefined,fire:null};
 function updateHUD(){
   if(state!=='play') return;
   if(shown.h!==maxRow){ shown.h=maxRow; hH.textContent=maxRow; hH.classList.remove('bump'); void hH.offsetWidth; hH.classList.add('bump'); hBest.textContent=Math.max(save.best,maxRow); }
@@ -884,16 +924,20 @@ function updateHUD(){
   if(shown.f!==f){ shown.f=f; meterFill.style.width=f+'%'; }
   const hot=dist<4 && started;
   if(shown.hot!==hot){ shown.hot=hot; meter.classList.toggle('hot',hot); }
+  const burning=fireLvl>0;
+  if(shown.fire!==burning){ shown.fire=burning; hH.classList.toggle('fire',burning); }
   const hint = (!save.tut && p.state==='idle') ? hintDx() : null;
   if(shown.hint!==hint){ shown.hint=hint; pads.forEach((el,i)=>el.classList.toggle('hint',hint!=null && hint===i-1)); tut.hidden=hint==null; }
 }
-function showBanner(z){
-  const T=THEMES[zoneTheme(z)], b=$('banner');
-  $('bEn').textContent='ZONE '+(z+1)+' · '+T.en;
-  $('bKr').textContent=zoneName(z);
-  $('bTip').textContent= z===0 ? '용암이 차오른다. 길을 읽고 올라라' : T.tip;
-  $('bSpd').textContent= z===0 ? '' : 'LAVA SPEED '+lavaSpeedAt(runT).toFixed(1)+' ▲';
-  b.classList.remove('show'); void b.offsetWidth; b.classList.add('show');
+// slim zone toast under the HUD; the hazard tip shows only the first time a player ever reaches that zone
+function showZone(z){
+  const th=zoneTheme(z), T=THEMES[th], b=$('zone'), tip=$('zTip');
+  if(!Array.isArray(save.seen)) save.seen=[];
+  const first = T.tip && !save.seen.includes(th);
+  if(first){ save.seen.push(th); persist(); }
+  $('zNo').textContent=z+1; $('zKr').textContent=zoneName(z);
+  tip.textContent=first?T.tip:''; tip.hidden=!first;
+  b.classList.remove('show','tip'); void b.offsetWidth; b.classList.add('show'); if(first) b.classList.add('tip');
 }
 function applyToggles(){
   for(const [id,k] of [['tSfx','sfx'],['tMusic','music'],['tVib','vib']]){ const b=$(id); b.setAttribute('aria-pressed',!!save[k]); b.textContent=save[k]?'켬':'끔'; }
@@ -904,8 +948,8 @@ function startGame(){
   audioInit(); sfx('ui');
   resetWorld(); state='play'; paused=false;
   screens.forEach(s=>$(s).hidden=true);
-  hud.hidden=false; shown.h=shown.c=shown.d=shown.f=-1; shown.hot=null; shown.hint=undefined;
-  showBanner(0); armBack();
+  hud.hidden=false; shown.h=shown.c=shown.d=shown.f=-1; shown.hot=null; shown.hint=undefined; shown.fire=null;
+  $('zone').classList.remove('show','tip'); armBack();
 }
 // Android back button in the installed app: pause the run instead of closing the app
 const INSTALLED = !!(window.matchMedia && matchMedia('(display-mode: standalone), (display-mode: fullscreen)').matches);

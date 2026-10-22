@@ -1,5 +1,5 @@
 // 게임을 수정해서 다시 올릴 때는 아래 버전 이름을 바꿔 주세요 (예: lavaclimb-v2).
-const VERSION = 'lavaclimb-v2';
+const VERSION = 'lavaclimb-v3';
 const CORE = ["./", "index.html", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png", "fonts/silkscreen-400.woff2", "fonts/silkscreen-700.woff2", "fonts/dohyeon-korean.woff2", "fonts/dohyeon-latin.woff2"];
 
 self.addEventListener('install', e => {
