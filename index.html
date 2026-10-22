@@ -324,6 +324,9 @@ function crumbleT(r){ return mix(BAL.crumbleT,diffAt(r)); }
 
 /* ================= generator: 5 lanes, one guaranteed path + decoys ================= */
 const PH_PER=2.0, PH_ON=1.3, PH_WARN=0.4;
+// blinking platforms cycle faster higher up: off for 0.7s at the bottom, 0.4s at the top, so waiting for one
+// never takes longer than the lead the lava allows there
+function phaseCell(D){ const c=mkCell('phase',.05); c.per=PH_PER-.6*D; c.on=PH_ON-.3*D; c.ph=Math.random()*c.per; return c; }
 // treasure chests sit on side platforms just off the path; rockets are very rare and sit on the path itself
 const CHEST_GAP=45, CHEST_MEAN=35, ROCKET_FIRST=80, ROCKET_MEAN=650, ROCKET_GAP=220;
 let run = null;
@@ -398,9 +401,11 @@ function genRowInner(r){
   if((m==='crumble'||m==='phase') && !caught) m=null;
   if(m==='ice'){ ns=[]; for(let l=T-1;l<=T+1;l++) if(l>=0&&l<LANES){ row.cells[l]=mkCell('ice',.05); ns.push(l); } }
   else if(m==='crumble') row.cells[T]=mkCell('crumble',.05);
-  else if(m==='phase') row.cells[T]=mkCell('phase',.05);
+  else if(m==='phase') row.cells[T]=phaseCell(D);
   else if(m==='moving'){
-    const p2=(T+1<LANES && (T<1 || Math.random()<.5)) ? T+1 : T-1;
+    // both ends within reach from the path below, so there is always an end to jump to without waiting
+    const both=list.filter(x=>Math.abs(x-T)===1);
+    const p2=both.length ? pick(both) : (T+1<LANES && (T<1 || Math.random()<.5)) ? T+1 : T-1;
     row.mov={a:T,b:p2,period:1.6-.45*D+Math.random()*.4,ph:Math.random()*Math.PI*2};
     ns=[T,p2];
   }
@@ -450,9 +455,10 @@ function genRowInner(r){
 }
 function getRow(r){ while(run.rows.length<=r) run.rows.push(genRow(run.rows.length)); return run.rows[r]; }
 function movPos(row,t){ const m=row.mov; const f=.5-.5*Math.cos(2*Math.PI*(t/m.period)+m.ph); return m.a+(m.b-m.a)*f; }
-function phaseOnAt(c,t){ return (((t+c.ph)%PH_PER)+PH_PER)%PH_PER<PH_ON; }
+function phaseOnAt(c,t){ const P=c.per||PH_PER; return (((t+c.ph)%P)+P)%P<(c.on||PH_ON); }
 function phaseOn(c){ return phaseOnAt(c,gt); }
-function phaseWarn(c){ const u=(gt+c.ph)%PH_PER; return u<PH_ON && u>PH_ON-PH_WARN; }
+function phaseWarn(c){ const P=c.per||PH_PER, O=c.on||PH_ON, u=(((gt+c.ph)%P)+P)%P; return u<O && u>O-PH_WARN; }
+function phaseLeft(c){ const P=c.per||PH_PER, O=c.on||PH_ON, u=(((gt+c.ph)%P)+P)%P; return u<O ? O-u : 0; }
 // what can be stood on at (row, lane)? null = nothing. t===null: a moving platform counts at either end.
 function landType(row,lane,t){
   if(!row) return null;
@@ -520,7 +526,7 @@ function arrive(r,lane,ty,dx){
     if(c.coin && !c.got){ c.got=true; coinsRun++; sfx('coin'); puff(laneX(lane),rowY(r)-10,6,'#ffd84a',35,40,.35); }
     if(c.chest && !c.opened) openChest(c,lane,r);
     // a crumbling floor only starts counting down once the climber can move again
-    if(c.t==='crumble' && !c.until) c.until=gt+crumbleT(r)+(p.state==='stun'?p.stunT:0);
+    if(c.t==='crumble') c.until=gt+crumbleT(r)+(p.state==='stun'?p.stunT:0);
     if(c.item==='rocket' && !c.used){ c.used=true; startRocket(r,lane); return; }
     if(c.t==='spring'){ c.sq=.35; p.state='launch'; p.launchAt=gt+.13; sfx('spring'); vib(20); return; }
   }
@@ -567,6 +573,7 @@ function land(j,ty){
   const drop=Math.max(0,p.fromRow-j);
   p.row=j; p.lane=p.fallLane; p.y=rowY(j);
   p.state='stun'; p.stunT=Math.min(.6,.3+drop*.02);
+  if(ty==='phase'){ const c=getRow(j).cells[p.fallLane]; if(c) p.stunT=Math.max(.1,Math.min(p.stunT,phaseLeft(c)-.35)); }
   shake(Math.min(4,1+drop*.2),.22); sfx('land'); vib(40);
   puff(p.x,p.y,8,'#d9c9b8',40,90,.4);
   arrive(j,p.lane,ty,0);
@@ -586,7 +593,8 @@ function updatePlayer(dt){
     while(p.vy>0 && p.checkRow>=0 && p.y>=rowY(p.checkRow)){
       const j=p.checkRow;
       if(j===0){ p.y=0; land(0,'floor'); break; }
-      const row=getRow(j), ty=landType(row,p.fallLane,gt);
+      const row=getRow(j); let ty=landType(row,p.fallLane,gt);
+      if(ty==='phase' && phaseLeft(row.cells[p.fallLane])<.45) ty=null;   // about to switch off: you fall past it
       if(ty==='spike'){ p.y=rowY(j); p.row=j; sfx('spike'); puff(p.x,p.y,5,'#ff5a5a',30,60,.3); p.vy=-110; p.checkRow=j-1; break; }
       if(ty){ p.y=rowY(j); if(ty==='moving') p.x=laneX(movPos(row,gt)); land(j,ty); break; }
       p.checkRow--;
@@ -604,6 +612,13 @@ function updatePlayer(dt){
   }
   if(p.state!=='dead' && state==='play' && p.y>-L*DY+1) die();
 }
+// a landing stuns you for at least 0.3s, so a broken platform above is back before you can tap again
+const REGROW_T=.12;
+function mendCrumble(c,row,i,l){
+  c.broken=false; c.until=0; c.regrow=0; c.grow=.3;
+  const k=THEMES[row.th].blk;
+  for(let q=0;q<8;q++){ const a=q/8*Math.PI*2; parts.push({x:laneX(l)+Math.cos(a)*14,y:rowY(i)+4+Math.sin(a)*6,vx:-Math.cos(a)*45,vy:-Math.sin(a)*20,g:0,life:.28,c:q%2?k.t:k.b,s:1}); }
+}
 function updateRows(dt){
   const a=Math.max(1,p.row-30), b=Math.min(run.rows.length-1,p.row+30);
   for(let i=a;i<=b;i++){
@@ -613,6 +628,19 @@ function updateRows(dt){
       if(c.sq>0) c.sq-=dt;
       if(c.dip>0) c.dip-=dt;
       if(c.grow>0) c.grow-=dt;
+      // cracked platforms above you always stay whole, so a fall never cuts off the way up: one that broke pulls
+      // itself back together right after you land below it (well before you can move again), and one that was
+      // still crumbling from an earlier step stops crumbling
+      const above = c.t==='crumble' && i>p.row && p.state!=='fall' && p.state!=='rocket' && p.state!=='dead';
+      if(above){
+        if(c.until && !c.broken) c.until=0;
+        if(c.broken){
+          if(!c.regrow) c.regrow=gt+REGROW_T;
+          else if(gt>=c.regrow) mendCrumble(c,row,i,l);
+        }
+        continue;
+      }
+      c.regrow=0;
       if(c.until && !c.broken){
         if(Math.random()<.3) parts.push({x:laneX(l)+rnd(-10,10),y:rowY(i)+8,vx:0,vy:10,g:120,life:.4,c:THEMES[row.th].blk.d,s:1});
         if(gt>=c.until){
@@ -620,17 +648,6 @@ function updateRows(dt){
           const k=THEMES[row.th].blk;
           for(let q=0;q<12;q++) parts.push({x:laneX(l)+rnd(-11,11),y:rowY(i)+rnd(1,7),vx:rnd(-25,25),vy:rnd(-30,10),g:300,life:rnd(.5,.9),c:q%2?k.b:k.d,s:2});
         }
-      }
-      // a crumbled platform pulls itself back together once you are below it, so a fall never cuts off the way up
-      if(c.broken && c.t==='crumble'){
-        if(i>p.row && p.state!=='fall' && p.state!=='rocket' && p.state!=='dead'){
-          if(!c.regrow) c.regrow=gt+.35;
-          else if(gt>=c.regrow){
-            c.broken=false; c.until=0; c.regrow=0; c.grow=.3;
-            const k=THEMES[row.th].blk;
-            for(let q=0;q<8;q++){ const a=q/8*Math.PI*2; parts.push({x:laneX(l)+Math.cos(a)*14,y:rowY(i)+4+Math.sin(a)*6,vx:-Math.cos(a)*45,vy:-Math.sin(a)*20,g:0,life:.28,c:q%2?k.t:k.b,s:1}); }
-          }
-        } else c.regrow=0;
       }
     }
   }
@@ -1303,6 +1320,8 @@ function acceptRevive(){
     if(c && (c.t==='normal'||c.t==='ice') && !c.broken && !c.item){ lane=l; break; }
   }
   Object.assign(p,{row:R,lane,x:laneX(lane),y:rowY(R),state:'idle',anim:null,riding:null,rk:null,vy:0});
+  // the way up is whole again the moment you come back, even if you tap right away
+  for(let r=R+1;r<=maxRow+12;r++){ const rw=getRow(r); rw.cells.forEach((c,l)=>{ if(c && c.t==='crumble'){ if(c.broken) mendCrumble(c,rw,r,l); else { c.until=0; c.regrow=0; } } }); }
   deadT=0; lavaBonus=4; L=R-(lavaGapAt(maxRow)+lavaBonus); lavaHold=true; state='play';
   camY=p.y-H*.64;
   for(let i=0;i<24;i++) parts.push({x:p.x+rnd(-6,6),y:p.y-rnd(0,14),vx:rnd(-20,20),vy:rnd(-60,-10),g:-20,life:rnd(.5,.9),c:i%2?'#fff1dc':'#ffd84a',s:1});
