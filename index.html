@@ -66,15 +66,21 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer}
 .z-name{display:flex;align-items:baseline;gap:calc(var(--u)*1.6);font-size:calc(var(--u)*5.2);background:rgba(10,4,8,.55);padding:calc(var(--u)*.8) calc(var(--u)*3) calc(var(--u)*1.1);box-shadow:0 0 0 calc(var(--u)*.5) rgba(0,0,0,.6)}
 .z-no{font-family:var(--f-pixel);font-weight:700;font-size:calc(var(--u)*3.4);color:var(--ember)}
 .z-tip{font-size:calc(var(--u)*3.8);color:var(--gold)}
-#hH.fire{color:var(--gold);text-shadow:calc(var(--u)*-.6) 0 0 #000,calc(var(--u)*.6) 0 0 #000,0 calc(var(--u)*-.6) 0 #000,0 calc(var(--u)*.6) 0 #000,0 calc(var(--u)*1.3) 0 #000,0 0 calc(var(--u)*3) rgba(255,122,26,.9)}
 .pads{position:absolute;left:0;right:0;bottom:0;display:flex;gap:calc(var(--u)*2.4);padding:0 calc(var(--u)*2.4) calc(var(--u)*2.4)}
-.pad{flex:1;height:calc(var(--u)*16);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:calc(var(--u)*.8);background:rgba(24,12,20,.55);box-shadow:inset 0 calc(var(--u)*-1.2) 0 rgba(0,0,0,.45),0 0 0 calc(var(--u)*.7) rgba(0,0,0,.85)}
-.pad svg{width:calc(var(--u)*7);height:calc(var(--u)*7);fill:var(--ink)}
-.pad span{font-size:calc(var(--u)*3.6)}
+.pad{flex:1;height:calc(var(--u)*13);display:flex;align-items:center;justify-content:center;background:rgba(24,12,20,.55);box-shadow:inset 0 calc(var(--u)*-1.2) 0 rgba(0,0,0,.45),0 0 0 calc(var(--u)*.7) rgba(0,0,0,.85)}
+.pad svg{width:calc(var(--u)*7.5);height:calc(var(--u)*7.5);fill:var(--ink)}
 .pad.down{transform:translateY(calc(var(--u)*.8));background:rgba(255,122,26,.6);box-shadow:inset 0 calc(var(--u)*1) 0 rgba(0,0,0,.3),0 0 0 calc(var(--u)*.7) #000}
 .pad.hint{animation:hint .5s steps(2) infinite}
 @keyframes hint{50%{box-shadow:inset 0 calc(var(--u)*-1.2) 0 rgba(0,0,0,.45),0 0 0 calc(var(--u)*1) var(--gold)}}
-.tut{position:absolute;left:0;right:0;bottom:calc(var(--u)*21);text-align:center;font-size:calc(var(--u)*4.2);color:var(--gold)}
+.tut{position:absolute;left:0;right:0;bottom:calc(var(--u)*18.5);text-align:center;font-size:calc(var(--u)*4.2);color:var(--gold)}
+.hud-best.new{color:var(--gold)}
+.rv-bar{height:calc(var(--u)*1.8);background:rgba(0,0,0,.45);box-shadow:0 0 0 calc(var(--u)*.5) #000}
+.rv-bar i{display:block;height:100%;width:100%;background:var(--ember)}
+.btn.rv{display:flex;align-items:center;justify-content:center;gap:calc(var(--u)*2.4)}
+.rv-cost{display:flex;align-items:center;gap:calc(var(--u)*1.2);font-family:var(--f-pixel);font-weight:700;font-size:calc(var(--u)*4.6)}
+.rv-note{text-align:center;font-size:calc(var(--u)*3.8);color:var(--dim)}
+.rv-note b{font-family:var(--f-pixel);color:var(--ink)}
+.skin.chest .skin-state{color:var(--gold)}
 
 /* ---------- screens ---------- */
 .screen{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;box-sizing:border-box;padding:calc(var(--u)*8) calc(var(--u)*6)}
@@ -134,16 +140,16 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer}
       <div class="hud-coins px-out"><i class="coin-ico"></i><span id="hCoins">0</span></div>
       <div class="hud-h px-out">
         <span id="hH">0</span>
-        <div class="hud-best">BEST <span id="hBest">0</span></div>
+        <div class="hud-best" id="hBestBox"><span id="hBestLbl">BEST</span> <span id="hBest">0</span></div>
         <div class="lava-row"><span class="lbl">LAVA</span><div class="meter" id="meter"><i id="meterFill"></i></div><span id="meterNum">5</span></div>
       </div>
       <button id="btnPause" aria-label="일시정지"><i></i><i></i></button>
       <div class="zone" id="zone" aria-live="polite"><div class="z-name px-out"><span class="z-no" id="zNo">2</span><span id="zKr">무너진 유적</span></div><div class="z-tip px-out" id="zTip" hidden></div></div>
       <div class="tut px-out" id="tut" hidden>깜빡이는 버튼 쪽 발판으로 올라가세요</div>
       <div class="pads">
-        <div class="pad" id="pad0"><svg viewBox="0 0 12 12" aria-hidden="true"><rect x="1" y="1" width="6" height="2"/><rect x="1" y="1" width="2" height="6"/><rect x="3" y="3" width="2" height="2"/><rect x="5" y="5" width="2" height="2"/><rect x="7" y="7" width="2" height="2"/><rect x="9" y="9" width="2" height="2"/></svg><span>왼쪽 위</span></div>
-        <div class="pad" id="pad1"><svg viewBox="0 0 12 12" aria-hidden="true"><rect x="5" y="1" width="2" height="10"/><rect x="3" y="3" width="2" height="2"/><rect x="7" y="3" width="2" height="2"/><rect x="1" y="5" width="2" height="2"/><rect x="9" y="5" width="2" height="2"/></svg><span>위</span></div>
-        <div class="pad" id="pad2"><svg viewBox="0 0 12 12" aria-hidden="true"><rect x="5" y="1" width="6" height="2"/><rect x="9" y="1" width="2" height="6"/><rect x="7" y="3" width="2" height="2"/><rect x="5" y="5" width="2" height="2"/><rect x="3" y="7" width="2" height="2"/><rect x="1" y="9" width="2" height="2"/></svg><span>오른쪽 위</span></div>
+        <div class="pad" id="pad0" role="img" aria-label="왼쪽 위"><svg viewBox="0 0 12 12" aria-hidden="true"><rect x="1" y="1" width="6" height="2"/><rect x="1" y="1" width="2" height="6"/><rect x="3" y="3" width="2" height="2"/><rect x="5" y="5" width="2" height="2"/><rect x="7" y="7" width="2" height="2"/><rect x="9" y="9" width="2" height="2"/></svg></div>
+        <div class="pad" id="pad1" role="img" aria-label="위"><svg viewBox="0 0 12 12" aria-hidden="true"><rect x="5" y="1" width="2" height="10"/><rect x="3" y="3" width="2" height="2"/><rect x="7" y="3" width="2" height="2"/><rect x="1" y="5" width="2" height="2"/><rect x="9" y="5" width="2" height="2"/></svg></div>
+        <div class="pad" id="pad2" role="img" aria-label="오른쪽 위"><svg viewBox="0 0 12 12" aria-hidden="true"><rect x="5" y="1" width="6" height="2"/><rect x="9" y="1" width="2" height="6"/><rect x="7" y="3" width="2" height="2"/><rect x="5" y="5" width="2" height="2"/><rect x="3" y="7" width="2" height="2"/><rect x="1" y="9" width="2" height="2"/></svg></div>
       </div>
     </div>
 
@@ -165,6 +171,16 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer}
         <div class="over-head" style="color:var(--ink)">일시정지</div>
         <button class="btn primary" id="btnResume">계속하기</button>
         <button class="btn" id="btnQuit">그만하기</button>
+      </div>
+    </div>
+
+    <div class="screen dim" id="scrRevive" hidden>
+      <div class="card">
+        <div class="over-head" style="color:var(--ink)">이어서 오르기</div>
+        <div class="rv-bar"><i id="rvBar"></i></div>
+        <button class="btn primary rv" id="btnRevive"><span class="rv-cost"><i class="coin-ico"></i><span id="rvCost">50</span></span><span>이어하기</span></button>
+        <button class="btn" id="btnGiveUp">그만하기</button>
+        <div class="rv-note">보유 코인 <b id="rvHave">0</b></div>
       </div>
     </div>
 
@@ -210,7 +226,7 @@ button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer}
 const $ = id => document.getElementById(id);
 const app = $('app'), stage = $('stage'), cv = $('cv'), ctx = cv.getContext('2d');
 const dark = document.createElement('canvas'), dctx = dark.getContext('2d');
-const W = 144, LANES = 5, LW = 28, LX0 = 2, DY = 18, ZLEN = 50, BW = 24;
+const W = 144, LANES = 5, LW = 28, LX0 = 2, DY = 18, BW = 24;
 let H = 256;
 const RM = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
 
@@ -256,14 +272,25 @@ const THEMES = [
 ];
 const ICE = THEMES[2].blk;
 const ROMAN = ['','II','III','IV','V','VI','VII','VIII','IX','X'];
+// zone lengths in floors: a short intro, then each zone lasts roughly 30-40 seconds at the pace the lava forces
+const ZONE_LENS=[50,90,110,130,150,160,170], ZONE_LEN_MAX=180;
+const zStarts=[0];
+function zoneLen(z){ return z<ZONE_LENS.length?ZONE_LENS[z]:ZONE_LEN_MAX; }
+function zoneStart(z){ while(zStarts.length<=z) zStarts.push(zStarts[zStarts.length-1]+zoneLen(zStarts.length-1)); return zStarts[z]; }
+function zoneOf(r){ if(r<=0) return 0; let z=0; while(zoneStart(z+1)<=r) z++; return z; }
+const expo = mean => -mean*Math.log(1-Math.random());
 
 /* ================= sprites ================= */
 const SKINS = [
   {id:'climber', name:'등반가', cost:0,    pal:{k:'#1a1020',h:'#e43b44',H:'#a3222b',s:'#f6c79a',e:'#1a1020',b:'#2b6cc4',B:'#1d4a8a',p:'#3b3b5c',f:'#6b3a2a'}},
   {id:'ninja',   name:'닌자',   cost:60,   pal:{k:'#07060c',h:'#2a2840',H:'#e43b44',s:'#f6c79a',e:'#07060c',b:'#2a2840',B:'#1a1828',p:'#2a2840',f:'#111018'}},
+  {id:'firefighter', name:'소방관', cost:120, pal:{k:'#1a1020',h:'#ffd84a',H:'#c99a10',s:'#f6c79a',e:'#1a1020',b:'#2a3a6a',B:'#ffd84a',p:'#2a3a6a',f:'#1a1020'}},
   {id:'astro',   name:'우주인', cost:200,  pal:{k:'#20232e',h:'#eef1f6',H:'#c3c9d6',s:'#59c8ff',e:'#eef1f6',b:'#eef1f6',B:'#b8bfcc',p:'#c3c9d6',f:'#5b6275'}},
+  {id:'zombie',  name:'좀비',   cost:350,  pal:{k:'#10180c',h:'#3a5a2a',H:'#2a4020',s:'#8fc46a',e:'#e43b44',b:'#5a6a8a',B:'#3a4a60',p:'#4a3a2a',f:'#2a2018'}},
   {id:'gold',    name:'황금 영웅', cost:500, pal:{k:'#3a2004',h:'#ffd84a',H:'#d9a414',s:'#f6c79a',e:'#3a2004',b:'#f2a516',B:'#c07a08',p:'#9a5e06',f:'#5a3404'}},
   {id:'golem',   name:'용암 골렘', cost:1200, pal:{k:'#120604',h:'#3a1a12',H:'#ff6a1a',s:'#4a2418',e:'#ffd84a',b:'#3a1a12',B:'#ff6a1a',p:'#2a120c',f:'#ff3b1f'}},
+  {id:'diamond', name:'다이아', cost:0, chest:true, pal:{k:'#0b2a36',h:'#bff4ff',H:'#4fd8f0',s:'#e8fbff',e:'#0b2a36',b:'#5ad8f0',B:'#1d8fb0',p:'#2b6c8c',f:'#0b3a4a'}},
+  {id:'shadow',  name:'그림자', cost:0, chest:true, pal:{k:'#05030a',h:'#2a1840',H:'#c04bff',s:'#1a1028',e:'#ff4be0',b:'#2a1840',B:'#c04bff',p:'#1a1028',f:'#c04bff'}},
 ];
 const BODY = ["...kkkk...","..khhhhk..","..khhhhHHk","..ksssek..","..kssssk..","...kkkk...","..kbbbBk..",".kbbbbbBk.",".ksbbbBsk.","..kbbbBk.."];
 const LEGS_STAND = ["..kppppk..","..kpkkpk..","..kfkkfk..","..kk..kk.."];
@@ -272,18 +299,25 @@ function buildSprite(rows,pal){ const c=document.createElement('canvas'); c.widt
 function mirror(src){ const c=document.createElement('canvas'); c.width=src.width; c.height=src.height; const g=c.getContext('2d'); g.translate(src.width,0); g.scale(-1,1); g.drawImage(src,0,0); return c; }
 const SPR = {};
 SKINS.forEach(sk => { const st=buildSprite(BODY.concat(LEGS_STAND),sk.pal), jp=buildSprite(BODY.concat(LEGS_JUMP),sk.pal); SPR[sk.id]={stand:[st,mirror(st)], jump:[jp,mirror(jp)]}; });
+function spriteFrom(rows,pal){ const c=document.createElement('canvas'); c.width=rows[0].length; c.height=rows.length; const g=c.getContext('2d'); rows.forEach((r,y)=>{ for(let x=0;x<r.length;x++){ const ch=r[x]; if(ch==='.') continue; g.fillStyle=pal[ch]; g.fillRect(x,y,1,1); } }); return c; }
+const ROCKET_SPR=spriteFrom(["....k....","...krk...","..krrrk..","..kwwsk..","..kwbsk..","..kwwsk..",".kkwwskk.","krkwwskrk","krrkkkrrk","kk.kgk.kk","...kkk..."],{k:'#1a1020',r:'#e43b44',w:'#eef1f6',s:'#b8bfcc',b:'#59c8ff',g:'#8a90a0'});
+const CHEST_SPR=spriteFrom([".kkkkkkkkk.","khhhhhhhhhk","kwwwwwwwwwk","kGGGGyGGGGk","kddddyddddk","kdddddddddk","kkkkkkkkkkk"],{k:'#2a1408',h:'#e0a050',w:'#b5651d',G:'#ffd84a',y:'#fff2a8',d:'#7a3e12'});
+const CHEST_OPEN_SPR=spriteFrom([".kkkkkkkkk.","kwwwwwwwwwk","kGGGGGGGGGk","kkkkkkkkkkk","kxcxxcxxcxk","kGGGGGGGGGk","kdddddddddk","kdddddddddk","kkkkkkkkkkk"],{k:'#2a1408',w:'#b5651d',G:'#ffd84a',x:'#3a1a08',c:'#ffd84a',d:'#7a3e12'});
 
 /* ================= generator: 5 lanes, one guaranteed path + decoys ================= */
 const PH_PER=2.0, PH_ON=1.3, PH_WARN=0.4, CRUMBLE_T=0.7;
+// treasure chests sit on side platforms just off the path; rockets are very rare and sit on the path itself
+const CHEST_GAP=45, CHEST_MEAN=35, ROCKET_FIRST=80, ROCKET_MEAN=650, ROCKET_GAP=220;
 let run = null;
 function mkCell(t,coinP){ return {t, broken:false, until:0, coin:t!=='spike' && t!=='floor' && Math.random()<(coinP||0), got:false, v:Math.random(), sq:0, ph:Math.random()*PH_PER, deco:(t==='normal'&&Math.random()<.18)?Math.floor(Math.random()*3):-1}; }
 function newRun(){
   const rest=[1,2,3,4,5,6];
   for(let i=rest.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [rest[i],rest[j]]=[rest[j],rest[i]]; }
-  run = {order:[0,...rest], rows:[], forced:{}, safe:[2]};
+  run = {order:[0,...rest], rows:[], forced:{}, safe:[2], prev:'normal', gust:{dir:0,left:0,calm:0},
+         nextChest:16+Math.round(expo(10)), nextRocket:ROCKET_FIRST+Math.round(expo(ROCKET_MEAN))};
 }
 function zoneTheme(z){ return run.order[((z%7)+7)%7]; }
-function themeAt(r){ return zoneTheme(Math.floor(Math.max(0,r)/ZLEN)); }
+function themeAt(r){ return zoneTheme(zoneOf(r)); }
 function zoneName(z){ return THEMES[zoneTheme(z)].kr + (z>=7 ? ' '+ROMAN[Math.min(9,Math.floor(z/7))] : ''); }
 function zoneMech(z){
   const m=THEMES[zoneTheme(z)].mech.slice();
@@ -292,23 +326,36 @@ function zoneMech(z){
 }
 function reach(s,w){ const out=new Set(); for(const d of [-1,0,1]) out.add(clamp(s+d+w,0,LANES-1)); return out; }
 function genRow(r){
-  const z=Math.floor(r/ZLEN), th=zoneTheme(z), pos=r-z*ZLEN, d=Math.min(1,r/350);
+  const z=zoneOf(r), th=zoneTheme(z), pos=r-zoneStart(z), d=Math.min(1,r/350), dark=!!THEMES[th].dark;
   const row={r, z, th, cells:new Array(LANES).fill(null), wind:0, mov:null, path:[], decor:false};
   if(r===0){ for(let i=0;i<LANES;i++) row.cells[i]=mkCell('floor'); run.safe=[2]; row.path=[0,1,2,3,4]; return row; }
   const spikeP = r<10 ? 0 : .12+.35*d;
-  const decoyP = r<6 ? .55 : .6-.3*d;
+  // fewer dead-end platforms where it is dark, so what little you can see is mostly real
+  const decoyP = (r<6 ? .55 : .6-.3*d) * (dark ? .6 : 1);
   const decoy = () => { const x=Math.random(); if(x<spikeP) return mkCell('spike'); if(r>15 && x<spikeP+.15) return mkCell('crumble',.08); return mkCell('normal',.14); };
   const f=run.forced[r];
   if(f && f.decor){ for(let i=0;i<LANES;i++) if(Math.random()<.5) row.cells[i]=decoy(); row.decor=true; return row; }
   if(f && f.lane!=null){
     row.cells[f.lane]=mkCell('normal',.3);
     for(let i=0;i<LANES;i++) if(i!==f.lane && Math.random()<decoyP) row.cells[i]=decoy();
-    run.safe=[f.lane]; row.path=[f.lane]; return row;
+    run.safe=[f.lane]; row.path=[f.lane]; run.prev='normal'; return row;
   }
-  const mechs=zoneMech(z);
+  const prevSafe=run.safe, mechs=zoneMech(z);
+  if(pos===0){ run.gust.left=0; run.gust.calm=0; }
   let m=null;
-  if(pos>=3 && r>=4 && mechs.length && Math.random()<.5+.2*d) m=pick(mechs);
-  if(m==='wind') row.wind=Math.random()<.5?-1:1;
+  // wind blows in gusts: a few rows pushing the same way, then a few calm rows
+  if(mechs.includes('wind') && pos>=3){
+    const G=run.gust;
+    if(G.left>0){ m='wind'; row.wind=G.dir; if(--G.left===0) G.calm=2+Math.floor(Math.random()*3); }
+    else if(G.calm>0) G.calm--;
+    else if(Math.random()<.2+.1*d){ G.dir=Math.random()<.5?-1:1; G.left=2+Math.floor(Math.random()*4); m='wind'; row.wind=G.dir; }
+  }
+  if(!m && pos>=3 && r>=4 && Math.random()<.5+.2*d){
+    // a timed platform never follows one that is about to disappear, otherwise some rows cannot be passed in time
+    let pool=mechs.filter(x=>x!=='wind');
+    if(run.prev==='crumble'||run.prev==='phase') pool=pool.filter(x=>x!=='phase'&&x!=='moving');
+    if(pool.length) m=pick(pool);
+  }
   let cand=null;
   for(const s of run.safe){ const rs=reach(s,row.wind); cand=cand?new Set([...cand].filter(x=>rs.has(x))):rs; }
   let list=[...cand]; if(!list.length) list=[...reach(run.safe[0],row.wind)];
@@ -329,12 +376,24 @@ function genRow(r){
     if(row.mov && (i===row.mov.a||i===row.mov.b)) continue;
     if(Math.random()<decoyP) row.cells[i]=decoy();
   }
+  if(r>=run.nextChest){
+    const opts=[];
+    for(let i=0;i<LANES;i++){
+      const c=row.cells[i];
+      if(!c||c.t!=='normal'||ns.includes(i)) continue;
+      if(prevSafe.some(s=>reach(s,row.wind).has(i))) opts.push(i);
+    }
+    if(opts.length){ const c=row.cells[pick(opts)]; c.chest=true; c.coin=false; c.deco=-1; run.nextChest=r+CHEST_GAP+Math.round(expo(CHEST_MEAN)); }
+  }
+  if(!m && r>=run.nextRocket){ const c=row.cells[T]; c.item='rocket'; c.coin=false; c.deco=-1; run.nextRocket=r+ROCKET_GAP+Math.round(expo(ROCKET_MEAN)); }
+  run.prev=m||'normal';
   run.safe=ns; row.path=ns.slice();
   return row;
 }
 function getRow(r){ while(run.rows.length<=r) run.rows.push(genRow(run.rows.length)); return run.rows[r]; }
 function movPos(row,t){ const m=row.mov; const f=.5-.5*Math.cos(2*Math.PI*(t/m.period)+m.ph); return m.a+(m.b-m.a)*f; }
-function phaseOn(c){ return (gt+c.ph)%PH_PER<PH_ON; }
+function phaseOnAt(c,t){ return (((t+c.ph)%PH_PER)+PH_PER)%PH_PER<PH_ON; }
+function phaseOn(c){ return phaseOnAt(c,gt); }
 function phaseWarn(c){ const u=(gt+c.ph)%PH_PER; return u<PH_ON && u>PH_ON-PH_WARN; }
 // what can be stood on at (row, lane)? null = nothing. t===null: a moving platform counts at either end.
 function landType(row,lane,t){
@@ -345,7 +404,7 @@ function landType(row,lane,t){
   }
   const c=row.cells[lane];
   if(!c||c.broken) return null;
-  if(c.t==='phase' && !phaseOn(c)) return null;
+  if(c.t==='phase' && !phaseOnAt(c, t==null?gt:t)) return null;
   return c.t;
 }
 
@@ -355,17 +414,16 @@ let L=-5, lavaSpeed=0, runT=0, gt=0;
 let camY=0, viewY=0, shakeT=0, shakeA=0;
 let maxRow=0, maxZone=0, coinsRun=0, falls=0, deadT=0, overShown=false;
 let parts=[], flash=0, nextBolt=3, boltX=0, boltSeed=0;
-// fire streak: quick consecutive climbs set the climber alight
-const FIRE_GAP=0.34, FIRE_ON=6, FIRE_HOT=20;
-let streak=0, lastHop=-9, fire=0, fireLvl=0;
-function breakStreak(){ streak=0; }
+let lavaBonus=0, lavaHold=false, revives=0, reviveLeft=0, bestAtStart=0, bestBroken=false, gflash=0;
+const pops=[];
 const p = {};
 
 function resetWorld(){
   newRun(); getRow(60);
-  Object.assign(p,{row:0,lane:2,dir:1,state:'idle',x:laneX(2),y:0,anim:null,vy:0,fallLane:2,checkRow:0,fromRow:0,stunT:0,launchAt:0,riding:null});
+  Object.assign(p,{row:0,lane:2,dir:1,state:'idle',x:laneX(2),y:0,anim:null,vy:0,fallLane:2,checkRow:0,fromRow:0,stunT:0,launchAt:0,riding:null,rk:null});
   L=-5; lavaSpeed=0; runT=0; maxRow=0; maxZone=0; coinsRun=0; falls=0; deadT=0; overShown=false;
-  parts.length=0; started=false; flash=0; nextBolt=3; streak=0; lastHop=-9; fire=0; fireLvl=0;
+  parts.length=0; started=false; flash=0; nextBolt=3;
+  lavaBonus=0; lavaHold=false; revives=0; bestAtStart=save.best; bestBroken=false; gflash=0; pops.length=0;
   camY=p.y-H*.64;
 }
 
@@ -375,7 +433,7 @@ function act(dx){
   if(state!=='play'||paused) return;
   if(p.state==='hop') finishHop();
   if(p.state!=='idle') return;
-  started=true;
+  started=true; lavaHold=false;
   if(dx) p.dir=dx;
   const nr=p.row+1, row=getRow(nr);
   getRow(nr+60);
@@ -386,7 +444,6 @@ function act(dx){
   p.row=nr; p.lane=lane; p.state='hop';
   anim(ty==='moving' ? laneX(movPos(row,gt)) : laneX(lane), rowY(nr), .08, 4);
   if(ty==='spike'){ knock(); return; }
-  streak = (gt-lastHop<FIRE_GAP) ? streak+1 : 1; lastHop=gt;
   sfx('step');
   arrive(nr,lane,ty,dx);
 }
@@ -398,18 +455,24 @@ function arrive(r,lane,ty,dx){
     if(dest>=0 && dest<LANES && landType(row,dest,null)==='ice'){ p.lane=lane=dest; anim(laneX(dest),rowY(r),.13,3); sfx('ice'); }
   }
   p.riding = ty==='moving' ? row : null;
-  if(r>maxRow){
-    maxRow=r;
-    const z=Math.floor(r/ZLEN);
-    if(z>maxZone){ maxZone=z; coinsRun+=5; showZone(z); sfx('zone'); }
-  }
+  reachRow(r);
   const c=row.cells[lane];
   if(c && ty!=='moving'){
     if(c.coin && !c.got){ c.got=true; coinsRun++; sfx('coin'); puff(laneX(lane),rowY(r)-10,6,'#ffd84a',35,40,.35); }
-    if(c.t==='crumble' && !c.until) c.until=gt+CRUMBLE_T;
+    if(c.chest && !c.opened) openChest(c,lane,r);
+    // a crumbling floor only starts counting down once the climber can move again
+    if(c.t==='crumble' && !c.until) c.until=gt+CRUMBLE_T+(p.state==='stun'?p.stunT:0);
+    if(c.item==='rocket' && !c.used){ c.used=true; startRocket(r,lane); return; }
     if(c.t==='spring'){ c.sq=.35; p.state='launch'; p.launchAt=gt+.13; sfx('spring'); vib(20); return; }
   }
   puff(p.anim?p.anim.tx:p.x,rowY(r),2,THEMES[row.th].blk.t,14,30,.25);
+}
+function reachRow(r){
+  if(r<=maxRow) return;
+  maxRow=r;
+  const z=zoneOf(r);
+  if(z>maxZone){ maxZone=z; coinsRun+=10; showZone(z); sfx('zone'); }
+  if(!bestBroken && bestAtStart>0 && r>bestAtStart){ bestBroken=true; celebrateBest(); }
 }
 function doLaunch(){ p.state='spring'; anim(laneX(p.lane),rowY(p.row+3),.34,30); }
 function landSpring(){
@@ -425,18 +488,19 @@ function startFall(lane,bounce,inPlace){
   p.riding=null; p.anim=null;
   p.state='fall'; p.fallLane=lane; p.fromRow=p.row; p.vy=bounce?-150:(inPlace?0:-80);
   p.checkRow=(bounce||inPlace)?p.row-1:p.row;
-  falls++; sfx('fall'); vib(25); breakStreak();
+  falls++; sfx('fall'); vib(25);
 }
 function knock(){ sfx('spike'); shake(3,.2); puff(laneX(p.lane),rowY(p.row)-6,6,'#ff5a5a',40,80,.4); p.y=rowY(p.row); p.x=laneX(p.lane); startFall(p.lane,true,false); }
 function land(j,ty){
   const drop=Math.max(0,p.fromRow-j);
   p.row=j; p.lane=p.fallLane; p.y=rowY(j);
-  p.state='stun'; p.stunT=Math.min(1.1,.42+drop*.04);
+  p.state='stun'; p.stunT=Math.min(.6,.3+drop*.02);
   shake(Math.min(4,1+drop*.2),.22); sfx('land'); vib(40);
   puff(p.x,p.y,8,'#d9c9b8',40,90,.4);
   arrive(j,p.lane,ty,0);
 }
 function updatePlayer(dt){
+  if(p.state==='rocket'){ updateRocket(dt); return; }
   if(p.anim && p.state!=='fall'){
     const a=p.anim; a.t+=dt; const k=Math.min(1,a.t/a.dur);
     p.x=lerp(a.fx,a.tx,k); p.y=lerp(a.fy,a.ty,k)-Math.sin(k*Math.PI)*a.arc;
@@ -484,8 +548,66 @@ function updateRows(dt){
     }
   }
 }
+/* rocket: very rare pickup that blasts the climber 30-45 floors up and leaves the lava behind for a while */
+function rocketFloors(r){ return Math.round(clamp(30+r*.02,30,45)); }
+function startRocket(r,lane){
+  let R=r+rocketFloors(r), tl=lane; getRow(R+70);
+  for(;;R++){
+    const row=getRow(R);
+    if(row.decor||row.mov||!row.path.length) continue;
+    const l=row.path[Math.floor(row.path.length/2)], c=row.cells[l];
+    if(c && (c.t==='normal'||c.t==='ice') && !c.item && !c.broken){ tl=l; break; }
+  }
+  getRow(R+70);
+  p.state='rocket'; p.anim=null; p.riding=null;
+  p.rk={from:r,to:R,lane:tl,t:-.35,dur:1.15+(R-r)*.02,fx:p.x,fy:rowY(r),tx:laneX(tl),ty:rowY(R),last:r};
+  lavaBonus=8; sfx('rocket'); vib([20,30,60]); shake(2,.4);
+}
+function updateRocket(dt){
+  const k=p.rk; k.t+=dt;
+  if(k.t<0){
+    p.x=k.fx+(Math.random()<.4?(Math.random()<.5?-1:1):0);
+    if(Math.random()<.7) parts.push({x:p.x+rnd(-3,3),y:p.y+2,vx:rnd(-20,20),vy:rnd(-10,5),g:-20,life:rnd(.3,.6),c:Math.random()<.5?'#c9c2c8':'#8a8288',s:1});
+    return;
+  }
+  const u=Math.min(1,k.t/k.dur), e=u<.5?4*u*u*u:1-Math.pow(-2*u+2,3)/2;
+  p.x=lerp(k.fx,k.tx,smooth(u)); p.y=lerp(k.fy,k.ty,e);
+  const cr=Math.min(k.to,Math.floor(-p.y/DY));
+  for(let rr=k.last+1; rr<=cr; rr++) reachRow(rr);
+  k.last=Math.max(k.last,cr);
+  for(let i=0;i<3;i++) parts.push({x:p.x+rnd(-2,2),y:p.y+6,vx:rnd(-12,12),vy:rnd(30,90),g:0,life:rnd(.2,.45),c:pick(['#fff2a8','#ffc23a','#ff7a1a','#e2361c']),s:Math.random()<.3?2:1});
+  if(u>=1){
+    p.row=k.to; p.lane=k.lane; p.x=k.tx; p.y=k.ty; p.state='idle'; p.rk=null;
+    sfx('land'); shake(3,.25); vib(30); puff(p.x,p.y,10,'#d9c9b8',45,90,.45);
+    const row=getRow(p.row); arrive(p.row,p.lane,landType(row,p.lane,gt)||'normal',0);
+  }
+}
+function curRow(){ return (p.state==='rocket' && p.rk) ? Math.max(p.row,Math.floor(-p.y/DY)) : p.row; }
+
+/* treasure chest: random reward, rarely a character you can only get here */
+const CHEST_SKINS=['diamond','shadow'];
+function openChest(c,lane,r){
+  c.opened=gt;
+  const x=laneX(lane), y=rowY(r)-8, roll=Math.random();
+  let amt=0, tier=0;
+  if(roll<.02){ tier=3; const locked=CHEST_SKINS.filter(id=>!save.owned.includes(id)); if(locked.length){ const id=pick(locked); save.owned.push(id); persist(); toast('NEW','새 캐릭터 · '+SKINS.find(s=>s.id===id).name,''); } else amt=150; }
+  else if(roll<.08){ tier=2; amt=60+Math.floor(Math.random()*41); }
+  else if(roll<.30){ tier=1; amt=15+Math.floor(Math.random()*16); }
+  else amt=5+Math.floor(Math.random()*6);
+  coinsRun+=amt;
+  const n=[10,16,28,34][tier];
+  for(let i=0;i<n;i++) parts.push({x:x+rnd(-3,3),y,vx:rnd(-40,40),vy:rnd(-140,-60),g:320,life:rnd(.6,1),c:i%3?'#ffd84a':'#fff6c0',s:2});
+  if(amt) pops.push({x,y:y-6,txt:'+'+amt,t:0,big:tier>=2});
+  if(tier>=2){ gflash=Math.max(gflash,tier===3?.7:.45); shake(2,.25); }
+  sfx(tier>=2?'jackpot':'chest'); vib(tier>=2?[30,40,80]:25);
+}
+function celebrateBest(){
+  const y=rowY(bestAtStart)-4;
+  for(let i=0;i<46;i++) parts.push({x:rnd(0,W),y:y+rnd(-4,4),vx:rnd(-25,25),vy:rnd(-120,-40),g:160,life:rnd(.8,1.4),c:pick(['#ffd84a','#fff1dc','#ff7a1a','#4dffd2','#ff5d7e']),s:Math.random()<.35?2:1});
+  gflash=Math.max(gflash,.35); sfx('record'); vib([20,40,20,40,60]);
+  hBestLbl.textContent='NEW BEST'; hBestBox.classList.add('new');
+}
 function die(){
-  breakStreak();
   p.state='dead'; deadT=0; sfx('die'); vib([60,40,140]); shake(5,.45);
   for(let k=0;k<26;k++) parts.push({x:p.x+rnd(-4,4),y:p.y,vx:rnd(-45,45),vy:rnd(-110,-30),g:260,life:rnd(.5,1),c:k%3?'#ffc23a':'#fff2a8',s:k%4?1:2});
 }
@@ -537,8 +659,11 @@ const SFX={
   die:()=>{ noise(.6,.2,500); tone(320,.7,'sawtooth',.06,50); },
   zone:()=>{ const t=AU.ac.currentTime; [523,659,784,1047].forEach((f,i)=>tone(f,.12,'square',.045,0,t+i*.08)); },
   thunder:()=>noise(.9,.18,380),
-  ignite:()=>{ noise(.25,.07,2400); tone(330,.18,'triangle',.04,660); },
-  blaze:()=>{ noise(.35,.09,3200); tone(440,.22,'triangle',.05,990); },
+  chest:()=>{ const t=AU.ac.currentTime; [784,988,1175].forEach((f,i)=>tone(f,.09,'square',.045,0,t+i*.06)); },
+  jackpot:()=>{ const t=AU.ac.currentTime; [523,659,784,1047,1319,1568].forEach((f,i)=>tone(f,.12,'square',.05,0,t+i*.07)); noise(.5,.05,9000,t+.1); },
+  record:()=>{ const t=AU.ac.currentTime; [659,784,988,1319].forEach((f,i)=>tone(f,.14,'square',.05,0,t+i*.09)); tone(1319,.5,'triangle',.05,0,t+.36); },
+  rocket:()=>{ const t=AU.ac.currentTime; noise(.4,.12,900,t); tone(110,.4,'sawtooth',.05,90,t); noise(1.8,.1,2600,t+.35); tone(220,1.8,'sawtooth',.035,880,t+.35); },
+  revive:()=>{ const t=AU.ac.currentTime; [392,523,659,784].forEach((f,i)=>tone(f,.16,'triangle',.06,0,t+i*.06)); },
   ui:()=>tone(720,.035,'square',.035),
   deny:()=>tone(150,.14,'square',.05),
 };
@@ -571,9 +696,9 @@ const lavaGap = t => Math.max(5, 9 - t*.017);
 let camTheme=0;
 function drawBackground(){
   const lv=Math.max(0,-(camY+H*.5)/DY);
-  const z=Math.floor(lv/ZLEN), frac=lv/ZLEN-z;
+  const z=zoneOf(lv), zEnd=zoneStart(z+1);
   const A=THEMES[zoneTheme(z)], B=THEMES[zoneTheme(z+1)];
-  const bl=smooth(clamp((frac-.82)/.18,0,1));
+  const bl=smooth(clamp((lv-(zEnd-10))/10,0,1));
   camTheme = zoneTheme(bl>.5?z+1:z);
   const top=mixA(rgb(A.sky[0]),rgb(B.sky[0]),bl), bot=mixA(rgb(A.sky[1]),rgb(B.sky[1]),bl);
   const bands=14;
@@ -732,6 +857,11 @@ function drawRows(){
     for(let l=0;l<LANES;l++){
       const c=row.cells[l]; if(!c||c.broken) continue;
       drawPlat(row.th,c,Math.round(laneX(l)-BW/2),sy,c.t);
+      if(c.chest){
+        ctx.drawImage(c.opened?CHEST_OPEN_SPR:CHEST_SPR,Math.round(laneX(l)-5),sy-(c.opened?9:7));
+        if(!c.opened && ((gt*3+i)|0)%3===0) R(Math.round(laneX(l)+4),sy-9,1,1,'#ffffff');
+      }
+      if(c.item==='rocket' && !c.used) drawRocketItem(laneX(l),sy);
       if(c.coin && !c.got) drawCoin(laneX(l),sy-10+(((gt*3+i)|0)%2));
     }
     if(row.mov) drawPlat(row.th,null,Math.round(laneX(movPos(row,gt))-BW/2),sy,'moving');
@@ -744,6 +874,49 @@ function drawRows(){
       if(((gt*5)|0)%2){ R(bx-2,by-2,BW+4,1,gold); R(bx-2,by+9,BW+4,1,gold); R(bx-2,by-2,1,12,gold); R(bx+BW+1,by-2,1,12,gold); }
     }
   }
+}
+function drawRocketItem(cx,sy){
+  const bob=((gt*3)|0)%2, x=Math.round(cx-4), y=sy-12-bob;
+  ctx.globalAlpha=.22+.12*Math.sin(gt*6); circ(ctx,Math.round(cx),y+5,7,'#ffd84a'); ctx.globalAlpha=1;
+  ctx.drawImage(ROCKET_SPR,x,y);
+  if(((gt*8)|0)%2) R(x+4,y+11,1,1,'#ffc23a');
+}
+// best-record flag: a dashed line at last best height, the flag drops once you pass it
+function drawBestLine(){
+  if(bestAtStart<=0) return;
+  const y=rowY(bestAtStart)-viewY-1;
+  if(y<-24||y>H+4) return;
+  ctx.globalAlpha=bestBroken?.22:.75;
+  const off=((gt*12)|0)%6;
+  for(let x=-6+off;x<W;x+=6) R(x,y,3,1,'#ffd84a');
+  ctx.globalAlpha=1;
+}
+function drawBestFlag(){
+  if(bestAtStart<=0||bestBroken) return;
+  const y=rowY(bestAtStart)-viewY-1;
+  if(y<-24||y>H+4) return;
+  const s=String(bestAtStart), w=s.length*4+3, wave=((gt*4)|0)%2;
+  R(1,y-17,1,17,'#c9a99a');
+  R(2,y-17+wave,w+1,9,'#1a0a08');
+  R(2,y-16+wave,w,7,'#e43b44');
+  glyphs(s,4,y-15+wave,'#fff1dc',1);
+}
+// 3x5 pixel digits for floating numbers and the flag
+const GL={'0':'111101101101111','1':'110010010010111','2':'111001111100111','3':'111001011001111','4':'101101111001001','5':'111100111001111','6':'111100111101111','7':'111001001010010','8':'111101111101111','9':'111101111001111','+':'000010111010000'};
+function glyphs(s,x,y,c,k){ ctx.fillStyle=c; for(let i=0;i<s.length;i++){ const g=GL[s[i]]; if(!g) continue; for(let b=0;b<15;b++) if(g[b]==='1') ctx.fillRect(x+(i*4+(b%3))*k,y+((b/3)|0)*k,k,k); } }
+function drawPops(){
+  for(const q of pops){
+    const k=q.big?2:1, w=(q.txt.length*4-1)*k, x=Math.round(q.x-w/2), y=Math.round(q.y-viewY-q.t*16);
+    ctx.globalAlpha=q.t<.7?1:Math.max(0,1-(q.t-.7)/.3);
+    for(const [ox,oy] of [[-1,0],[1,0],[0,-1],[0,1],[1,1]]) glyphs(q.txt,x+ox,y+oy,'#1a0a08',k);
+    glyphs(q.txt,x,y,q.big?'#ffd84a':'#fff1dc',k);
+  }
+  ctx.globalAlpha=1;
+}
+function drawSpeedLines(){
+  ctx.globalAlpha=.35; const f=(gt*30)|0;
+  for(let i=0;i<9;i++){ const x=(hash(i,f)*W)|0, y=(hash(i+9,f)*H)|0, l=8+((hash(i+3,f)*12)|0); R(x,y,1,l,'#fff1dc'); }
+  ctx.globalAlpha=1;
 }
 // tutorial helper: which of ↖ ↑ ↗ lands on the generated path (or at least on something safe)
 function hintDx(){
@@ -759,14 +932,20 @@ function hintDx(){
 function drawPlayer(){
   if(p.state==='dead' && deadT>.45) return;
   const sk=SPR[save.skin]||SPR.climber;
-  const air=p.state==='hop'||p.state==='fall'||p.state==='spring';
+  const air=p.state==='hop'||p.state==='fall'||p.state==='spring'||p.state==='rocket';
   const img=(air?sk.jump:sk.stand)[p.dir>=0?0:1];
   const x=Math.round(p.x-5); let y=Math.round(p.y-14-viewY);
+  if(p.state==='rocket') y-=2;
   if(p.state==='idle') y+=((gt*2)|0)%2;
   if(p.state==='launch') y+=2;
   if(p.state==='dead'){ ctx.globalAlpha=Math.max(0,1-deadT*2.2); y+=Math.round(deadT*24); }
-  if(p.state!=='dead') drawFire(x,y);
   ctx.drawImage(img,x,y); ctx.globalAlpha=1;
+  // the rocket is drawn over the legs so the climber straddles it
+  if(p.state==='rocket'){
+    const rx=Math.round(p.x-4), ry=Math.round(p.y-viewY-7);
+    ctx.drawImage(ROCKET_SPR,rx,ry);
+    if(p.rk && p.rk.t>0){ const f=((gt*24)|0)%2; R(rx+3,ry+11,3,2+f,'#ffc23a'); R(rx+4,ry+13+f,1,2,'#ff7a1a'); }
+  }
   if(p.state==='stun'){ const a=gt*9; R(x+5+Math.round(Math.cos(a)*5),y-2+Math.round(Math.sin(a)*1.5),1,1,'#ffd84a'); R(x+5+Math.round(Math.cos(a+3.14)*5),y-2+Math.round(Math.sin(a+3.14)*1.5),1,1,'#ffd84a'); }
 }
 function drawParts(){
@@ -791,10 +970,10 @@ function drawLava(){
   }
 }
 function darknessAmt(){
-  const lv=Math.max(0,-(camY+H*.64)/DY), z=Math.floor(lv/ZLEN);
+  const lv=Math.max(0,-(camY+H*.64)/DY), z=zoneOf(lv);
   if(!THEMES[zoneTheme(z)].dark) return 0;
-  const pos=lv-z*ZLEN;
-  return clamp(pos/6,0,1)*clamp((ZLEN-pos)/5,0,1);
+  const pos=lv-zoneStart(z), len=zoneLen(z);
+  return clamp(pos/6,0,1)*clamp((len-pos)/5,0,1);
 }
 function drawDarkness(){
   const a=darknessAmt()*(1-Math.min(1,flash*1.4));
@@ -802,10 +981,11 @@ function drawDarkness(){
   dctx.globalCompositeOperation='source-over'; dctx.clearRect(0,0,W,H);
   dctx.globalAlpha=1; dctx.fillStyle='rgba(6,4,16,'+(.95*a)+')'; dctx.fillRect(0,0,W,H);
   dctx.globalCompositeOperation='destination-out'; dctx.fillStyle='#000';
-  const px=Math.round(p.x), py=Math.round(p.y-viewY-20);
-  dctx.globalAlpha=.35; circ(dctx,px,py,58);
-  dctx.globalAlpha=.6; circ(dctx,px,py,46);
-  dctx.globalAlpha=1; circ(dctx,px,py,34);
+  // the light leans upward and reaches two lanes sideways, so the next few rows are always readable
+  const px=Math.round(p.x), py=Math.round(p.y-viewY-26);
+  dctx.globalAlpha=.35; circ(dctx,px,py,76);
+  dctx.globalAlpha=.6; circ(dctx,px,py,60);
+  dctx.globalAlpha=1; circ(dctx,px,py,46);
   const surf=lavaSurf();
   dctx.globalAlpha=.55; dctx.fillRect(0,surf-16,W,H);
   dctx.globalAlpha=1; dctx.fillRect(0,surf-5,W,H);
@@ -831,7 +1011,7 @@ function drawAmbient(){
 }
 function drawVignette(){
   if(state!=='play'||p.state==='dead'||!started) return;
-  const dist=p.row-L, d=clamp((4.5-dist)/4.5,0,1);
+  const dist=curRow()-L, d=clamp((4.5-dist)/4.5,0,1);
   if(d<=0) return;
   ctx.globalAlpha=d*(.28+.22*Math.sin(gt*12));
   R(0,0,W,3,'#ff3b1f'); R(0,H-3,W,3,'#ff3b1f'); R(0,0,3,H,'#ff3b1f'); R(W-3,0,3,H,'#ff3b1f');
@@ -844,7 +1024,9 @@ function render(){
   viewY=Math.round(camY)+sy;
   ctx.imageSmoothingEnabled=false;
   ctx.save(); ctx.translate(sx,0);
-  drawBackground(); drawAmbient(); drawRows(); drawPlayer(); drawLava(); drawParts(); drawDarkness(); drawFlash();
+  drawBackground(); drawAmbient(); drawBestLine(); drawRows(); drawBestFlag(); drawPlayer(); drawLava(); drawParts(); drawDarkness(); drawPops(); drawFlash();
+  if(gflash>0){ ctx.globalAlpha=gflash*.35; R(0,0,W,H,'#ffd84a'); ctx.globalAlpha=1; }
+  if(p.state==='rocket' && p.rk && p.rk.t>0) drawSpeedLines();
   ctx.restore();
   drawVignette();
 }
@@ -861,94 +1043,75 @@ function update(dt){
   gt+=dt;
   getRow(p.row+60);
   if(state==='play'){
-    if(started && p.state!=='dead'){
+    if(started && p.state!=='dead' && !lavaHold){
       runT+=dt; lavaSpeed=lavaSpeedAt(runT); L+=lavaSpeed*dt;
-      const g=lavaGap(runT); if(L<p.row-g) L=p.row-g;
+      const g=lavaGap(runT)+lavaBonus, cr=curRow(); if(L<cr-g) L=cr-g;
+      if(p.state!=='rocket' && lavaBonus>0) lavaBonus=Math.max(0,lavaBonus-dt*1.2);
     }
-    updatePlayer(dt); updateRows(dt); updateFire(dt);
-    if(p.state==='dead'){ deadT+=dt; if(deadT>1.1 && !overShown) gameOver(); }
+    updatePlayer(dt); updateRows(dt);
+    if(p.state==='dead'){ deadT+=dt; if(deadT>.9 && !overShown){ if(canRevive()) offerRevive(); else gameOver(); } }
     if(!save.tut && maxRow>=15){ save.tut=true; persist(); }
-    if(darknessAmt()>.2 && p.state!=='dead'){ nextBolt-=dt; if(nextBolt<=0){ flash=1; nextBolt=rnd(2.2,4); boltX=(Math.random()*(W-20)+10)|0; boltSeed=(Math.random()*1e6)|0; sfx('thunder'); } }
+    if(darknessAmt()>.2 && p.state!=='dead'){ nextBolt-=dt; if(nextBolt<=0){ flash=1; nextBolt=rnd(1.6,2.8); boltX=(Math.random()*(W-20)+10)|0; boltSeed=(Math.random()*1e6)|0; sfx('thunder'); } }
   }
+  if(state==='revive'){ reviveLeft-=dt; rvBar.style.width=Math.max(0,reviveLeft/REVIVE_T*100)+'%'; if(reviveLeft<=0) declineRevive(); }
   ambient(dt);
   updateParts(dt);
+  for(let i=pops.length-1;i>=0;i--){ pops[i].t+=dt; if(pops[i].t>1) pops.splice(i,1); }
   const tgtY=p.y-H*.64;
-  camY+=(tgtY-camY)*Math.min(1,dt*(p.state==='fall'?16:9));
+  camY+=(tgtY-camY)*Math.min(1,dt*(p.state==='fall'?16:p.state==='rocket'?14:9));
   if(shakeT>0){ shakeT-=dt; if(shakeT<=0) shakeA=0; }
-  flash=Math.max(0,flash-dt*2.2);
+  flash=Math.max(0,flash-dt*1.6); gflash=Math.max(0,gflash-dt*2.5);
   updateHUD();
-}
-
-function updateFire(dt){
-  if(streak && gt-lastHop>FIRE_GAP+.2 && p.state!=='launch' && p.state!=='spring') breakStreak();
-  const lvl = streak>=FIRE_HOT ? 2 : streak>=FIRE_ON ? 1 : 0;
-  if(lvl>fireLvl){ sfx(lvl===2?'blaze':'ignite'); if(lvl===2) vib(15); }
-  fireLvl=lvl;
-  const target = lvl===2 ? 1 : lvl===1 ? .6 : 0;
-  fire += (target-fire)*Math.min(1,dt*(target>fire?14:5));
-  if(fire>.08 && p.state!=='dead' && Math.random()<dt*(18+fire*30)){
-    parts.push({x:p.x+rnd(-4,4),y:p.y-rnd(2,10),vx:rnd(-8,8),vy:rnd(-40,-18),g:-10,life:rnd(.25,.5),c:Math.random()<.5?'#ffc23a':(fire>.8?'#fff2a8':'#ff7a1a'),s:1});
-  }
-}
-function drawFire(x,y){
-  if(fire<.06) return;
-  const h=fire, f=(gt*14)|0;
-  // soft round glow, then flame tongues licking up the climber's sides and over the head (sprite is 10x14 at x,y)
-  ctx.globalAlpha=.16*h; circ(ctx,x+5,y+8,Math.round(7+3*h),'#ff7a1a'); ctx.globalAlpha=1;
-  const tongue=(cx,base,len)=>{
-    if(len<=0) return;
-    R(cx,base-len,1,len,'#e2361c');
-    if(len>1) R(cx,base-len+1,1,len-1,'#ff7a1a');
-    if(len>3) R(cx,base-Math.ceil(len*.55),1,Math.ceil(len*.55),'#ffc23a');
-    if(h>.8 && len>5) R(cx,base-Math.ceil(len*.25),1,Math.ceil(len*.25),'#fff2a8');
-  };
-  const side=[[-2,6],[-1,9],[10,9],[11,6]];
-  side.forEach(([dx,m],i)=>tongue(x+dx,y+13,Math.round((m*.55+hash(i,f)*m*.6)*h)));
-  for(let i=0;i<6;i++){
-    const m=(i===2||i===3)?7:5;
-    tongue(x+2+i,y+1,Math.round((1+hash(i+9,f)*m)*h));
-  }
 }
 
 /* ================= HUD / screens ================= */
 const hud=$('hud'), hH=$('hH'), hBest=$('hBest'), hCoins=$('hCoins'), meter=$('meter'), meterFill=$('meterFill'), meterNum=$('meterNum');
-const pads=[$('pad0'),$('pad1'),$('pad2')], tut=$('tut');
-const shown={h:-1,c:-1,d:-1,f:-1,hot:null,hint:undefined,fire:null};
+const pads=[$('pad0'),$('pad1'),$('pad2')], tut=$('tut'), hBestLbl=$('hBestLbl'), hBestBox=$('hBestBox'), rvBar=$('rvBar');
+const shown={h:-1,c:-1,d:-1,f:-1,hot:null,hint:undefined,msg:undefined};
 function updateHUD(){
   if(state!=='play') return;
   if(shown.h!==maxRow){ shown.h=maxRow; hH.textContent=maxRow; hH.classList.remove('bump'); void hH.offsetWidth; hH.classList.add('bump'); hBest.textContent=Math.max(save.best,maxRow); }
   if(shown.c!==coinsRun){ shown.c=coinsRun; hCoins.textContent=coinsRun; }
-  const dist=Math.max(0,Math.floor(p.row-L));
+  const cr=curRow(), dist=Math.max(0,Math.floor(cr-L));
   if(shown.d!==dist){ shown.d=dist; meterNum.textContent=dist; }
-  const f=Math.round(clamp(1-(p.row-L-.5)/9,0,1)*100);
+  const f=Math.round(clamp(1-(cr-L-.5)/9,0,1)*100);
   if(shown.f!==f){ shown.f=f; meterFill.style.width=f+'%'; }
   const hot=dist<4 && started;
   if(shown.hot!==hot){ shown.hot=hot; meter.classList.toggle('hot',hot); }
-  const burning=fireLvl>0;
-  if(shown.fire!==burning){ shown.fire=burning; hH.classList.toggle('fire',burning); }
   const hint = (!save.tut && p.state==='idle') ? hintDx() : null;
-  if(shown.hint!==hint){ shown.hint=hint; pads.forEach((el,i)=>el.classList.toggle('hint',hint!=null && hint===i-1)); tut.hidden=hint==null; }
+  const msg = lavaHold ? 'hold' : hint!=null ? 'hint' : null;
+  if(shown.hint!==hint || shown.msg!==msg){
+    shown.hint=hint; shown.msg=msg;
+    pads.forEach((el,i)=>el.classList.toggle('hint',hint!=null && hint===i-1));
+    tut.textContent = msg==='hold' ? '누르면 이어서 시작' : '깜빡이는 버튼 쪽 발판으로 올라가세요';
+    tut.hidden=!msg;
+  }
 }
 // slim zone toast under the HUD; the hazard tip shows only the first time a player ever reaches that zone
+function toast(no,name,tipText){
+  const b=$('zone'), tip=$('zTip');
+  $('zNo').textContent=no; $('zKr').textContent=name;
+  tip.textContent=tipText||''; tip.hidden=!tipText;
+  b.classList.remove('show','tip'); void b.offsetWidth; b.classList.add('show'); if(tipText) b.classList.add('tip');
+}
 function showZone(z){
-  const th=zoneTheme(z), T=THEMES[th], b=$('zone'), tip=$('zTip');
+  const th=zoneTheme(z), T=THEMES[th];
   if(!Array.isArray(save.seen)) save.seen=[];
   const first = T.tip && !save.seen.includes(th);
   if(first){ save.seen.push(th); persist(); }
-  $('zNo').textContent=z+1; $('zKr').textContent=zoneName(z);
-  tip.textContent=first?T.tip:''; tip.hidden=!first;
-  b.classList.remove('show','tip'); void b.offsetWidth; b.classList.add('show'); if(first) b.classList.add('tip');
+  toast(z+1, zoneName(z), first?T.tip:'');
 }
 function applyToggles(){
   for(const [id,k] of [['tSfx','sfx'],['tMusic','music'],['tVib','vib']]){ const b=$(id); b.setAttribute('aria-pressed',!!save[k]); b.textContent=save[k]?'켬':'끔'; }
 }
 function updateTitle(){ $('tBest').textContent=save.best; $('tCoins').textContent=save.coins; }
-const screens=['scrTitle','scrPause','scrOver','scrSkins','scrSet'];
+const screens=['scrTitle','scrPause','scrRevive','scrOver','scrSkins','scrSet'];
 function startGame(){
   audioInit(); sfx('ui');
   resetWorld(); state='play'; paused=false;
   screens.forEach(s=>$(s).hidden=true);
-  hud.hidden=false; shown.h=shown.c=shown.d=shown.f=-1; shown.hot=null; shown.hint=undefined; shown.fire=null;
+  hud.hidden=false; shown.h=shown.c=shown.d=shown.f=-1; shown.hot=null; shown.hint=undefined; shown.msg=undefined;
+  hBestLbl.textContent='BEST'; hBestBox.classList.remove('new');
   $('zone').classList.remove('show','tip'); armBack();
 }
 // Android back button in the installed app: pause the run instead of closing the app
@@ -960,6 +1123,7 @@ addEventListener('popstate',()=>{
   if(ignorePop){ ignorePop=false; return; }
   backArmed=false;
   if(state==='play'){ pause(); armBack(); }
+  else if(state==='revive'){ declineRevive(); armBack(); }
   else if(state==='over'){ toTitle(); }
 });
 function toTitle(){
@@ -969,6 +1133,34 @@ function toTitle(){
 }
 function pause(){ if(state!=='play'||paused||p.state==='dead') return; paused=true; $('scrPause').hidden=false; }
 function resume(){ paused=false; $('scrPause').hidden=true; last=performance.now(); }
+/* revive: pay coins to keep climbing from near this run's height, at most twice a run */
+const REVIVE_COST=[50,120], REVIVE_T=5;
+function reviveCost(){ return REVIVE_COST[revives]; }
+function canRevive(){ return revives<REVIVE_COST.length && maxRow>=15 && save.coins+coinsRun>=reviveCost(); }
+function offerRevive(){
+  state='revive'; reviveLeft=REVIVE_T;
+  $('rvCost').textContent=reviveCost(); $('rvHave').textContent=save.coins+coinsRun;
+  rvBar.style.width='100%';
+  hud.hidden=true; $('scrRevive').hidden=false;
+}
+function acceptRevive(){
+  if(state!=='revive') return;
+  const cost=reviveCost();
+  if(coinsRun>=cost) coinsRun-=cost; else { save.coins-=cost-coinsRun; coinsRun=0; persist(); }
+  revives++; $('scrRevive').hidden=true; hud.hidden=false; shown.c=-1;
+  let R=maxRow, lane=2;
+  for(;R>0;R--){
+    const row=getRow(R); if(row.decor||row.mov||!row.path.length) continue;
+    const l=row.path[Math.floor(row.path.length/2)], c=row.cells[l];
+    if(c && (c.t==='normal'||c.t==='ice') && !c.broken && !c.item){ lane=l; break; }
+  }
+  Object.assign(p,{row:R,lane,x:laneX(lane),y:rowY(R),state:'idle',anim:null,riding:null,rk:null,vy:0});
+  deadT=0; lavaBonus=4; L=R-(lavaGap(runT)+lavaBonus); lavaHold=true; state='play';
+  camY=p.y-H*.64;
+  for(let i=0;i<24;i++) parts.push({x:p.x+rnd(-6,6),y:p.y-rnd(0,14),vx:rnd(-20,20),vy:rnd(-60,-10),g:-20,life:rnd(.5,.9),c:i%2?'#fff1dc':'#ffd84a',s:1});
+  sfx('revive'); vib(40);
+}
+function declineRevive(){ if(state!=='revive') return; $('scrRevive').hidden=true; gameOver(); }
 let overReady=false;
 function gameOver(){
   overShown=true; state='over';
@@ -976,7 +1168,7 @@ function gameOver(){
   if(isNew) save.best=maxRow;
   save.coins+=coinsRun; persist();
   $('oH').textContent=maxRow; $('oNew').hidden=!isNew; $('oBest').textContent=save.best;
-  $('oZone').textContent=zoneName(Math.floor(maxRow/ZLEN)); $('oCoins').textContent='+'+coinsRun; $('oFalls').textContent=falls;
+  $('oZone').textContent=zoneName(zoneOf(maxRow)); $('oCoins').textContent='+'+coinsRun; $('oFalls').textContent=falls;
   hud.hidden=true; $('scrOver').hidden=false;
   overReady=false; $('btnRetry').disabled=true; $('btnMenu').disabled=true;
   setTimeout(()=>{ overReady=true; $('btnRetry').disabled=false; $('btnMenu').disabled=false; },650);
@@ -985,14 +1177,15 @@ function renderSkins(){
   const grid=$('skinGrid'); grid.innerHTML=''; $('sCoins').textContent=save.coins;
   SKINS.forEach(sk=>{
     const owned=save.owned.includes(sk.id), sel=save.skin===sk.id;
-    const b=document.createElement('button'); b.className='skin'+(sel?' sel':'')+(owned?'':' locked'); b.id='skin-'+sk.id;
+    const b=document.createElement('button'); b.className='skin'+(sel?' sel':'')+(owned?'':' locked')+(sk.chest?' chest':''); b.id='skin-'+sk.id;
     const c=document.createElement('canvas'); c.width=10; c.height=14; c.getContext('2d').drawImage(SPR[sk.id].stand[0],0,0);
     const n=document.createElement('span'); n.className='skin-name'; n.textContent=sk.name;
-    const st=document.createElement('span'); st.className='skin-state'; st.textContent=sel?'사용 중':owned?'선택':sk.cost+' 코인';
+    const st=document.createElement('span'); st.className='skin-state'; st.textContent=sel?'사용 중':owned?'선택':sk.chest?'상자에서만':sk.cost+' 코인';
     b.append(c,n,st);
     b.addEventListener('click',()=>{
       audioInit();
       if(owned){ save.skin=sk.id; sfx('ui'); }
+      else if(sk.chest){ st.textContent='보물상자에서 나와요'; sfx('deny'); return; }
       else if(save.coins>=sk.cost){ save.coins-=sk.cost; save.owned.push(sk.id); save.skin=sk.id; sfx('coin'); }
       else { st.textContent='코인 부족'; sfx('deny'); return; }
       persist(); renderSkins(); updateTitle();
@@ -1021,6 +1214,7 @@ addEventListener('keydown',e=>{
   const k=e.key;
   if(state==='title' && $('scrSkins').hidden && $('scrSet').hidden && (k===' '||k==='Enter')){ e.preventDefault(); startGame(); return; }
   if(state==='over' && overReady && (k===' '||k==='Enter')){ e.preventDefault(); startGame(); return; }
+  if(state==='revive'){ if(k===' '||k==='Enter'){ e.preventDefault(); acceptRevive(); } else if(k==='Escape') declineRevive(); return; }
   if(state!=='play') return;
   if(k==='Escape'||k==='p'||k==='P'){ paused?resume():pause(); return; }
   if(paused) return;
@@ -1034,6 +1228,8 @@ $('btnPause').addEventListener('click',()=>{ sfx('ui'); pause(); });
 $('btnResume').addEventListener('click',()=>{ sfx('ui'); resume(); });
 $('btnQuit').addEventListener('click',()=>{ sfx('ui'); toTitle(); });
 $('btnRetry').addEventListener('click',()=>{ if(overReady) startGame(); });
+$('btnRevive').addEventListener('click',()=>acceptRevive());
+$('btnGiveUp').addEventListener('click',()=>{ sfx('ui'); declineRevive(); });
 $('btnMenu').addEventListener('click',()=>{ if(overReady){ sfx('ui'); toTitle(); } });
 $('btnSkins').addEventListener('click',()=>{ audioInit(); sfx('ui'); renderSkins(); $('scrSkins').hidden=false; });
 $('btnSkinsBack').addEventListener('click',()=>{ sfx('ui'); $('scrSkins').hidden=true; });
