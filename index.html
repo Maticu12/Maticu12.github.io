@@ -258,17 +258,17 @@ const rowY = r => -r*DY;
 const THEMES = [
   {id:'cave', kr:'용암 동굴', en:'MAGMA CAVE', sky:['#12070c','#3a1210'], far:'#24100f', mid:'#3d1c17', acc:'#ff8a3d', mech:[], tip:'',
    blk:{o:'#1c1418',t:'#9c8f9a',b:'#6b6170',d:'#433b4a',x:'#c3b8c2'}},
-  {id:'ruins', kr:'무너진 유적', en:'FALLEN RUINS', sky:['#22162a','#6b4a36'], far:'#3a2834', mid:'#5a4232', acc:'#ffd27a', mech:['crumble'], tip:'금 간 발판은 무너진다',
+  {id:'ruins', kr:'무너진 유적', en:'FALLEN RUINS', sky:['#22162a','#6b4a36'], far:'#3a2834', mid:'#5a4232', acc:'#ffd27a', mech:['crumble'], mk:.85, tip:'금 간 발판은 무너진다',
    blk:{o:'#3a2414',t:'#f0d28e',b:'#cfa060',d:'#94683a',x:'#fff0c4'}},
   {id:'ice', kr:'얼음 절벽', en:'FROST CLIFF', sky:['#0b2236','#3f8fb8'], far:'#16405e', mid:'#2c6688', acc:'#bff4ff', mech:['ice'], tip:'옆으로 밟으면 한 칸 미끄러진다',
    blk:{o:'#1d3a52',t:'#ffffff',b:'#bfe9ff',d:'#7fb8d8',x:'#ffffff'}},
   {id:'forest', kr:'거대 버섯 숲', en:'SPORE FOREST', sky:['#0b1c1c','#25503a'], far:'#14302a', mid:'#1f4634', acc:'#ff5d7e', mech:['spring'], tip:'버섯은 세 층 점프',
    blk:{o:'#21140c',t:'#9fd86a',b:'#86593a',d:'#5a3a24',x:'#d4f5a0'}},
-  {id:'sky', kr:'하늘 섬', en:'SKY ISLES', sky:['#3a74d6','#a6dcf6'], far:'#8fc2ee', mid:'#d4ecfb', acc:'#ffe066', mech:['moving'], tip:'움직이는 구름에 맞춰 올라라',
+  {id:'sky', kr:'하늘 섬', en:'SKY ISLES', sky:['#3a74d6','#a6dcf6'], far:'#8fc2ee', mid:'#d4ecfb', acc:'#ffe066', mech:['moving'], mk:.8, tip:'움직이는 구름에 맞춰 올라라',
    blk:{o:'#5b7298',t:'#ffffff',b:'#e4ecf6',d:'#b4c6dc',x:'#ffffff'}},
   {id:'storm', kr:'번개 폭풍', en:'THUNDERHEAD', sky:['#0a0818','#2a2046'], far:'#181430', mid:'#2a2248', acc:'#b9f1ff', mech:['wind'], dark:true, tip:'바람이 옆으로 민다',
    blk:{o:'#14151f',t:'#a3a9c2',b:'#61667f',d:'#3d4156',x:'#d8dcef'}},
-  {id:'orbit', kr:'궤도 정거장', en:'ORBIT STATION', sky:['#020208','#16103a'], far:'#0d0a24', mid:'#262052', acc:'#4dffd2', mech:['phase','moving'], tip:'깜빡이면 곧 사라진다',
+  {id:'orbit', kr:'궤도 정거장', en:'ORBIT STATION', sky:['#020208','#16103a'], far:'#0d0a24', mid:'#262052', acc:'#4dffd2', mech:['phase','moving'], mk:.7, tip:'깜빡이면 곧 사라진다',
    blk:{o:'#1d2130',t:'#e0e5ef',b:'#949db2',d:'#5a6278',x:'#ffffff'}},
 ];
 const ICE = THEMES[2].blk;
@@ -305,8 +305,25 @@ const ROCKET_SPR=spriteFrom(["....k....","...krk...","..krrrk..","..kwwsk..","..
 const CHEST_SPR=spriteFrom([".kkkkkkkkk.","khhhhhhhhhk","kwwwwwwwwwk","kGGGGyGGGGk","kddddyddddk","kdddddddddk","kkkkkkkkkkk"],{k:'#2a1408',h:'#e0a050',w:'#b5651d',G:'#ffd84a',y:'#fff2a8',d:'#7a3e12'});
 const CHEST_OPEN_SPR=spriteFrom([".kkkkkkkkk.","kwwwwwwwwwk","kGGGGGGGGGk","kkkkkkkkkkk","kxcxxcxxcxk","kGGGGGGGGGk","kdddddddddk","kdddddddddk","kkkkkkkkkkk"],{k:'#2a1408',w:'#b5651d',G:'#ffd84a',x:'#3a1a08',c:'#ffd84a',d:'#7a3e12'});
 
+/* ================= difficulty: the climb gets harder the higher you are ================= */
+// D runs 0 -> 1 from floor 20 to BAL.top. Inside a zone it ramps a little further,
+// so each new zone opens slightly easier and its last stretch is the hardest part.
+const BAL = {top:500, curve:.75, saw:.2,
+  spike:[.12,.55],      // share of empty cells holding spikes
+  mech:[.45,.85],       // share of rows using the zone's mechanic
+  crumbleFrom:.10, crumble:.55,   // plain path platforms that are cracked anyway
+  crumbleT:[.65,.50],   // seconds a cracked platform holds once stepped on
+  branch:[1,.4],        // side platforms (safety net) thin out
+  fall:[2,6],           // a wrong tap drops you at most this many floors
+  gust:[.18,.38],       // how often wind gusts start in windy zones
+  gap:[4.5,3.25],       // how far below you the lava may lag, in floors
+  lava:1.15, lavaH:.0025};  // lava speed: time multiplier, extra floors/s per floor climbed
+const mix = (a,k) => a[0]+(a[1]-a[0])*k;
+function diffAt(r){ return Math.pow(clamp((r-20)/(BAL.top-20),0,1),BAL.curve); }
+function crumbleT(r){ return mix(BAL.crumbleT,diffAt(r)); }
+
 /* ================= generator: 5 lanes, one guaranteed path + decoys ================= */
-const PH_PER=2.0, PH_ON=1.3, PH_WARN=0.4, CRUMBLE_T=0.7;
+const PH_PER=2.0, PH_ON=1.3, PH_WARN=0.4;
 // treasure chests sit on side platforms just off the path; rockets are very rare and sit on the path itself
 const CHEST_GAP=45, CHEST_MEAN=35, ROCKET_FIRST=80, ROCKET_MEAN=650, ROCKET_GAP=220;
 let run = null;
@@ -314,7 +331,7 @@ function mkCell(t,coinP){ return {t, broken:false, until:0, coin:t!=='spike' && 
 function newRun(){
   const rest=[1,2,3,4,5,6];
   for(let i=rest.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [rest[i],rest[j]]=[rest[j],rest[i]]; }
-  run = {order:[0,...rest], rows:[], forced:{}, safe:[2], prev:'normal', gust:{dir:0,left:0,calm:0}, branches:[],
+  run = {order:[0,...rest], rows:[], forced:{}, safe:[2], prev:'normal', gust:{dir:0,left:0,calm:0}, branches:[], solid:[0,0,0,0,0],
          nextChest:16+Math.round(expo(10)), nextRocket:ROCKET_FIRST+Math.round(expo(ROCKET_MEAN))};
 }
 function zoneTheme(z){ return run.order[((z%7)+7)%7]; }
@@ -326,11 +343,15 @@ function zoneMech(z){
   return m;
 }
 function reach(s,w){ const out=new Set(); for(const d of [-1,0,1]) out.add(clamp(s+d+w,0,LANES-1)); return out; }
-function genRow(r){
-  const z=zoneOf(r), th=zoneTheme(z), pos=r-zoneStart(z), d=Math.min(1,r/350), dark=!!THEMES[th].dark;
+// platforms that will still be there to catch a fall (cracked and blinking ones on the path are gone by then)
+function markSolid(row){ for(let i=0;i<LANES;i++){ const c=row.cells[i]; if(c && (c.t==='normal'||c.t==='ice'||c.t==='spring'||c.t==='floor')) run.solid[i]=row.r; } return row; }
+function genRow(r){ return markSolid(genRowInner(r)); }
+function genRowInner(r){
+  const z=zoneOf(r), th=zoneTheme(z), pos=r-zoneStart(z), D=diffAt(r), dark=!!THEMES[th].dark;
+  const dz=clamp(D+BAL.saw*(pos/zoneLen(z)-.5),0,1);
   const row={r, z, th, cells:new Array(LANES).fill(null), wind:0, mov:null, path:[], decor:false};
   if(r===0){ for(let i=0;i<LANES;i++) row.cells[i]=mkCell('floor'); run.safe=[2]; row.path=[0,1,2,3,4]; return row; }
-  const spikeP = r<10 ? 0 : (.12+.2*d)*(dark?.7:1);
+  const spikeP = r<10 ? 0 : mix(BAL.spike,dz)*(dark?.7:1);
   const fillSpikes = pr => { for(let i=0;i<LANES;i++){ if(row.cells[i]) continue; if(row.mov&&(i===row.mov.a||i===row.mov.b)) continue; if(Math.random()<pr) row.cells[i]=mkCell('spike'); } };
   const f=run.forced[r];
   // rows the mushroom jumps over only hold spikes, so nothing up there is a dead end
@@ -344,9 +365,23 @@ function genRow(r){
     const G=run.gust;
     if(G.left>0){ m='wind'; row.wind=G.dir; if(--G.left===0) G.calm=2+Math.floor(Math.random()*3); }
     else if(G.calm>0) G.calm--;
-    else if(Math.random()<.2+.1*d){ G.dir=Math.random()<.5?-1:1; G.left=2+Math.floor(Math.random()*4); m='wind'; row.wind=G.dir; }
+    else if(Math.random()<mix(BAL.gust,dz)){ G.dir=Math.random()<.5?-1:1; G.left=2+Math.floor(Math.random()*4); m='wind'; row.wind=G.dir; }
   }
-  if(!m && pos>=3 && r>=4 && Math.random()<.5+.2*d){
+  // a wrong tap never drops you more than K floors: when a lane beside the path has been empty for too long,
+  // a ledge appears there and becomes a side branch that leads back to the path. K grows with height.
+  const K=Math.round(mix(BAL.fall,D)), pr=run.rows[r-1];
+  if(pr && !pr.decor && r>1){
+    const W=new Set(); for(const l of pr.path) for(const dx of [-1,0,1]) W.add(clamp(l+dx+row.wind,0,LANES-1));
+    for(const L of W){
+      if(pr.mov && (L===pr.mov.a||L===pr.mov.b)) continue;
+      const c=pr.cells[L]; if(c && c.t!=='spike') continue;
+      if(r-1-run.solid[L]<=K) continue;
+      pr.cells[L]=mkCell('normal',.1); run.solid[L]=r-1;
+      if(!run.branches.some(b=>b.lane===L)) run.branches.push({lane:L,left:0});
+    }
+  }
+  // zones whose mechanic is harder to read (crumbling, moving, blinking) use it a little less often
+  if(!m && pos>=3 && r>=4 && Math.random()<mix(BAL.mech,dz)*(THEMES[th].mk||1)){
     // a timed platform never follows one that is about to disappear, otherwise some rows cannot be passed in time
     let pool=mechs.filter(x=>x!=='wind');
     if(run.prev==='crumble'||run.prev==='phase') pool=pool.filter(x=>x!=='phase'&&x!=='moving');
@@ -358,16 +393,25 @@ function genRow(r){
   let list=[...cand]; if(!list.length) list=[...reach(prevSafe[0],row.wind)];
   const T=pick(list);
   let ns=[T];
+  // a platform that gives way needs something not too far below it
+  const caught=r-1-run.solid[T]<=K;
+  if((m==='crumble'||m==='phase') && !caught) m=null;
   if(m==='ice'){ ns=[]; for(let l=T-1;l<=T+1;l++) if(l>=0&&l<LANES){ row.cells[l]=mkCell('ice',.05); ns.push(l); } }
   else if(m==='crumble') row.cells[T]=mkCell('crumble',.05);
   else if(m==='phase') row.cells[T]=mkCell('phase',.05);
   else if(m==='moving'){
     const p2=(T+1<LANES && (T<1 || Math.random()<.5)) ? T+1 : T-1;
-    row.mov={a:T,b:p2,period:1.5-.4*d+Math.random()*.4,ph:Math.random()*Math.PI*2};
+    row.mov={a:T,b:p2,period:1.6-.45*D+Math.random()*.4,ph:Math.random()*Math.PI*2};
     ns=[T,p2];
   }
   else if(m==='spring'){ row.cells[T]=mkCell('spring'); run.forced[r+1]={decor:true}; run.forced[r+2]={decor:true}; run.forced[r+3]={lane:T}; }
-  else row.cells[T]=mkCell('normal',.05);
+  else {
+    // higher up, plain platforms are more and more often cracked as well (not in the ruins, which crumble anyway;
+    // half as often in the dark or where timing already matters)
+    const cp=Math.max(0,(dz-BAL.crumbleFrom)/(1-BAL.crumbleFrom))*BAL.crumble*(dark||mechs.some(x=>x==='phase'||x==='moving')?.5:1);
+    if(m!=='wind' && pos>=3 && caught && !mechs.includes('crumble') && r<run.nextRocket && Math.random()<cp){ row.cells[T]=mkCell('crumble',.05); m='crumble'; }
+    else row.cells[T]=mkCell('normal',.05);
+  }
   // side branches: every platform you can stand on has a way up, and every branch flows back into the main path
   const w=row.wind, onPath=l=>ns.includes(l), keep=[];
   for(const br of run.branches){
@@ -382,8 +426,14 @@ function genRow(r){
     if(!keep.some(k=>k.lane===L)) keep.push(br);
   }
   run.branches=keep;
+  // the first step can be reached from anywhere on the ground floor
+  if(r===1) for(let l=0;l<LANES;l++){
+    if([l-1,l,l+1].some(x=>x>=0 && x<LANES && row.cells[x])) continue;
+    const L=clamp(l,1,LANES-2); row.cells[L]=mkCell('normal',.2);
+    if(!run.branches.some(b=>b.lane===L)) run.branches.push({lane:L,left:0});
+  }
   const chestDue=r>=run.nextChest, timed=mechs.some(x=>x==='phase'||x==='moving');
-  if(m!=='spring' && pos>=2 && run.branches.length<2 && (chestDue || Math.random()<(timed?.2:.4))){
+  if(m!=='spring' && pos>=2 && run.branches.length<2 && (chestDue || Math.random()<(timed?.2:.4)*mix(BAL.branch,D))){
     const opts=[];
     for(let i=0;i<LANES;i++){ if(row.cells[i]||onPath(i)) continue; if(prevSafe.some(s=>reach(s,w).has(i))) opts.push(i); }
     if(opts.length){
@@ -470,7 +520,7 @@ function arrive(r,lane,ty,dx){
     if(c.coin && !c.got){ c.got=true; coinsRun++; sfx('coin'); puff(laneX(lane),rowY(r)-10,6,'#ffd84a',35,40,.35); }
     if(c.chest && !c.opened) openChest(c,lane,r);
     // a crumbling floor only starts counting down once the climber can move again
-    if(c.t==='crumble' && !c.until) c.until=gt+CRUMBLE_T+(p.state==='stun'?p.stunT:0);
+    if(c.t==='crumble' && !c.until) c.until=gt+crumbleT(r)+(p.state==='stun'?p.stunT:0);
     if(c.item==='rocket' && !c.used){ c.used=true; startRocket(r,lane); return; }
     if(c.t==='spring'){ c.sq=.35; p.state='launch'; p.launchAt=gt+.13; sfx('spring'); vib(20); return; }
   }
@@ -562,6 +612,7 @@ function updateRows(dt){
       const c=row.cells[l]; if(!c) continue;
       if(c.sq>0) c.sq-=dt;
       if(c.dip>0) c.dip-=dt;
+      if(c.grow>0) c.grow-=dt;
       if(c.until && !c.broken){
         if(Math.random()<.3) parts.push({x:laneX(l)+rnd(-10,10),y:rowY(i)+8,vx:0,vy:10,g:120,life:.4,c:THEMES[row.th].blk.d,s:1});
         if(gt>=c.until){
@@ -569,6 +620,17 @@ function updateRows(dt){
           const k=THEMES[row.th].blk;
           for(let q=0;q<12;q++) parts.push({x:laneX(l)+rnd(-11,11),y:rowY(i)+rnd(1,7),vx:rnd(-25,25),vy:rnd(-30,10),g:300,life:rnd(.5,.9),c:q%2?k.b:k.d,s:2});
         }
+      }
+      // a crumbled platform pulls itself back together once you are below it, so a fall never cuts off the way up
+      if(c.broken && c.t==='crumble'){
+        if(i>p.row && p.state!=='fall' && p.state!=='rocket' && p.state!=='dead'){
+          if(!c.regrow) c.regrow=gt+.35;
+          else if(gt>=c.regrow){
+            c.broken=false; c.until=0; c.regrow=0; c.grow=.3;
+            const k=THEMES[row.th].blk;
+            for(let q=0;q<8;q++){ const a=q/8*Math.PI*2; parts.push({x:laneX(l)+Math.cos(a)*14,y:rowY(i)+4+Math.sin(a)*6,vx:-Math.cos(a)*45,vy:-Math.sin(a)*20,g:0,life:.28,c:q%2?k.t:k.b,s:1}); }
+          }
+        } else c.regrow=0;
       }
     }
   }
@@ -754,7 +816,7 @@ function musicTick(){
       if(sg.kick.includes(st)) kick(t);
       if(st===4||st===12) snare(t);
       if(st%2===0) hat(t);
-      const danger = started && curRow()-L<4;
+      const danger = started && curRow()-L<Math.min(4,lavaGapAt(maxRow)-1);
       if(danger && st%2===1) hat(t,.018);
       if(danger && (st===2||st===10)) tone(mf(sg.key+24),.08,'square',.014,0,t,bus);
       for(const [ms,dg,len] of MOTIFS[sg.motif][bar]) if(ms===st) tone(mf(sn(sg,root+dg)+12),spb*len*.9,sg.lead,sg.lead==='sawtooth'?.022:.03,0,t,bus);
@@ -765,8 +827,10 @@ function musicTick(){
 }
 
 /* ================= lava (rows per second, speeds up over time) ================= */
-const lavaSpeedAt = t => .8 + 2.4*(1-Math.exp(-t/90)) + t*.006;
-const lavaGap = t => Math.max(5, 9 - t*.017);
+// speeds up with time, and a little more the higher you are (that part stops growing at floor 500)
+const lavaSpeedAt = (t,h) => BAL.lava*(.8 + 2.4*(1-Math.exp(-t/90)) + t*.006) + BAL.lavaH*Math.min(h,500);
+// the lava never lags further behind than this, and it closes in as you get higher
+const lavaGapAt = r => mix(BAL.gap,diffAt(r));
 
 /* ================= render ================= */
 let camTheme=0;
@@ -932,6 +996,7 @@ function drawRows(){
     if(row.wind) drawWind(row,sy0);
     for(let l=0;l<LANES;l++){
       const c=row.cells[l]; if(!c||c.broken) continue;
+      if(c.grow>0 && ((gt*24)|0)%2) continue;
       const sy=sy0+(c.dip>0?1:0);
       drawPlat(row.th,c,Math.round(laneX(l)-BW/2),sy,c.t);
       if(c.chest){
@@ -1092,7 +1157,8 @@ function drawAmbient(){
 }
 function drawVignette(){
   if(state!=='play'||p.state==='dead'||!started) return;
-  const dist=curRow()-L, d=clamp((4.5-dist)/4.5,0,1);
+  // measured against how far the lava may lag at this height, so the edge only glows when it is closer than usual
+  const ref=Math.min(4.5,lavaGapAt(maxRow)), dist=curRow()-L, d=clamp((ref-dist)/ref,0,1);
   if(d<=0) return;
   ctx.globalAlpha=d*(.28+.22*Math.sin(gt*12));
   R(0,0,W,3,'#ff3b1f'); R(0,H-3,W,3,'#ff3b1f'); R(0,0,3,H,'#ff3b1f'); R(W-3,0,3,H,'#ff3b1f');
@@ -1125,8 +1191,8 @@ function update(dt){
   getRow(p.row+60);
   if(state==='play'){
     if(started && p.state!=='dead' && !lavaHold){
-      runT+=dt; lavaSpeed=lavaSpeedAt(runT); L+=lavaSpeed*dt;
-      const g=lavaGap(runT)+lavaBonus, cr=curRow(); if(L<cr-g) L=cr-g;
+      runT+=dt; lavaSpeed=lavaSpeedAt(runT,maxRow); L+=lavaSpeed*dt;
+      const g=lavaGapAt(maxRow)+lavaBonus, cr=curRow(); if(L<cr-g) L=cr-g;
       if(p.state!=='rocket' && lavaBonus>0) lavaBonus=Math.max(0,lavaBonus-dt*1.2);
     }
     updatePlayer(dt); updateRows(dt);
@@ -1150,14 +1216,15 @@ const hud=$('hud'), hH=$('hH'), hBest=$('hBest'), hCoins=$('hCoins'), meter=$('m
 const pads=[$('pad0'),$('pad1'),$('pad2')], tut=$('tut'), hBestLbl=$('hBestLbl'), hBestBox=$('hBestBox'), rvBar=$('rvBar');
 const shown={h:-1,c:-1,d:-1,f:-1,hot:null,hint:undefined,msg:undefined};
 function updateHUD(){
-  if(state!=='play') return;
+    if(state!=='play') return;
   if(shown.h!==maxRow){ shown.h=maxRow; hH.textContent=maxRow; hH.classList.remove('bump'); void hH.offsetWidth; hH.classList.add('bump'); hBest.textContent=Math.max(save.best,maxRow); }
   if(shown.c!==coinsRun){ shown.c=coinsRun; hCoins.textContent=coinsRun; }
   const cr=curRow(), dist=Math.max(0,Math.floor(cr-L));
   if(shown.d!==dist){ shown.d=dist; meterNum.textContent=dist; }
-  const f=Math.round(clamp(1-(cr-L-.5)/9,0,1)*100);
+  // the meter is full when the lava is at your feet and empty at the farthest it can lag at this height
+  const ref=lavaGapAt(maxRow), f=Math.round(clamp(1-(cr-L)/ref,0,1)*100);
   if(shown.f!==f){ shown.f=f; meterFill.style.width=f+'%'; }
-  const hot=dist<4 && started;
+  const hot=cr-L<Math.min(4,ref-1) && started;
   if(shown.hot!==hot){ shown.hot=hot; meter.classList.toggle('hot',hot); }
   const hint = (!save.tut && p.state==='idle') ? hintDx() : null;
   const msg = lavaHold ? 'hold' : hint!=null ? 'hint' : null;
@@ -1236,7 +1303,7 @@ function acceptRevive(){
     if(c && (c.t==='normal'||c.t==='ice') && !c.broken && !c.item){ lane=l; break; }
   }
   Object.assign(p,{row:R,lane,x:laneX(lane),y:rowY(R),state:'idle',anim:null,riding:null,rk:null,vy:0});
-  deadT=0; lavaBonus=4; L=R-(lavaGap(runT)+lavaBonus); lavaHold=true; state='play';
+  deadT=0; lavaBonus=4; L=R-(lavaGapAt(maxRow)+lavaBonus); lavaHold=true; state='play';
   camY=p.y-H*.64;
   for(let i=0;i<24;i++) parts.push({x:p.x+rnd(-6,6),y:p.y-rnd(0,14),vx:rnd(-20,20),vy:rnd(-60,-10),g:-20,life:rnd(.5,.9),c:i%2?'#fff1dc':'#ffd84a',s:1});
   sfx('revive'); vib(40);
